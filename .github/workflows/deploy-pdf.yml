@@ -1,28 +1,39 @@
-
-name: Deploy PDF to GitHub Pages
+name: Deploy PDF
 
 on:
   push:
-    branches:
-      - main 
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v3
-
-      - name: Upload PDF
-        run: |
-          mkdir public
-          cp compsys.pdf public/
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        uses: xu-cheng/latex-action@v3
         with:
-          branch: gh-pages
-          folder: public
+          root_file: compsys.tex
+      - name: Copy
+        run: |
+          mkdir out
+          cp ./compsys.pdf ./out/compsys.pdf
+          cp ./index.html ./out/index.html
+      - uses: actions/upload-artifact@v3
+        with:
+          name: compsys-pdf
+          path: out/compsys.pdf
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.7
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          CLEAN: true
+          SINGLE_COMMIT: true
+          FOLDER: out
+          GIT_CONFIG_NAME: elazdi-al
+          GIT_CONFIG_EMAIL: alielazdi@gmail.com
