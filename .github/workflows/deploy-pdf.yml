@@ -23,7 +23,7 @@ jobs:
           mkdir out
           cp ./compsys.pdf ./out/compsys.pdf
           cp ./index.html ./out/index.html
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: compsys-pdf
           path: out/compsys.pdf
