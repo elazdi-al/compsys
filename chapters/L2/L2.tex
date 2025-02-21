@@ -32,7 +32,7 @@ A compiler translates high-level source code (such as C) into low-level executab
 
 \section{Memory Organization}
 \textit{I'll go a little bit deeper for our fellow syscoms, I also recommend understanding how LIFO works before reading this, if you're too lazy for that, it's basically in the name Last In First Out, means that the last item pushed onto the stack is the first one to be removed, just like stacking plates— you take the top plate first before reaching the ones below. } \\
-In modern computer architectures, a process's memory is divided into several distinct segments, each serving a specific role during program execution. Understanding these segments is fundamental for effective programming and debugging. The primary segments include:
+In modern computer architectures, a process's memory is divided into several distinct segments, each serving a specific role during program execution. Understanding these segments is fundamental for effective programming and debugging. \\[10px]
 
 \begin{definition}[Memory Segments]
 A process's memory image is typically divided into the following segments:
@@ -73,7 +73,6 @@ The stack is a dedicated region of memory that the CPU uses to manage function c
 \end{minipage}
 
 \subsubsection{Stack Frames}
-
 Each function call creates its own \emph{stack frame}, a self-contained section that isolates the function's local data. This segmentation helps maintain the correct scope and lifetime for local variables and ensures that return addresses are preserved. The following diagram illustrates the organization of stack frames during nested function calls:
 
 \begin{center}
@@ -81,7 +80,6 @@ Each function call creates its own \emph{stack frame}, a self-contained section 
 \end{center}
 
 \subsection{Heap Memory}
-
 The heap is used for dynamic memory allocation, where memory is allocated and deallocated as needed during runtime. Unlike the stack:
 \begin{itemize}
   \item[-] \textbf{Manual vs. Automatic Management:} In languages such as C or C++, the programmer is responsible for explicitly allocating (using \texttt{malloc} or \texttt{new}) and deallocating (using \texttt{free} or \texttt{delete}) heap memory. In contrast, some modern languages employ automatic garbage collection.
@@ -101,7 +99,6 @@ This segment holds global and static variables. It is divided into:
   \item[-] \textbf{Uninitialized Data (BSS):} Variables that are declared but not explicitly initialized; these are automatically set to zero at program startup.
 \end{itemize}
 
-\subsection{Important Registers}
 \begin{definition}[CPU Registers]
 Two registers are critical for process execution:
 \begin{itemize}
@@ -110,24 +107,19 @@ Two registers are critical for process execution:
 \end{itemize}
 \end{definition}
 
-\subsection{Process and Thread Identifiers}
 \begin{definition}[Process and Thread Identifiers]
 \leavevmode\\ % Ensures LaTeX enters vertical mode before inserting a newline
-
+A process is considered to be \emph{running} if at least one of its threads is executing; otherwise, it is not running.
 \begin{itemize}
   \item[-] \textbf{Process ID (PID):} A unique identifier assigned to each process.
   \item[-] \textbf{Thread ID (TID):} A unique identifier for each thread, which may be unique within a process or across the entire system, depending on the operating system.
 \end{itemize}
-
 \end{definition}
-\subsubsection{Process/Thread Status}
-A process is considered to be \emph{running} if at least one of its threads is executing; otherwise, it is not running.
-
 
 \begin{definition}[Resource Sharing]
 Processes and threads share system resources such as CPU and memory. Each thread is given the illusion of having exclusive access to the CPU, and each process appears to have dedicated memory, even though these resources are actually shared.
 \end{definition}
-
+\vspace{10px}
 
 \begin{definition}[CPU Sharing]
 The CPU is time-shared among multiple threads. This virtualization is achieved through context switching, where the CPU rapidly switches between threads, giving each one the impression of exclusive use of the processor.
@@ -142,12 +134,10 @@ Consider two programs running on a single-core processor. Each program is assign
     \includegraphics[width=0.8\textwidth]{chapters/L2/images/cpu_context.png}
 \end{center}
 
-\subsection{Thread's CPU Context}
 \begin{definition}[Thread's CPU Context]
 A thread's CPU context comprises the values of all CPU registers at the moment it was last executing. In a single-threaded process, this context represents the entire process state.
 \end{definition}
 
-\subsection{Context Switching}
 \begin{definition}[Context Switching]
 Context switching is the process by which the CPU switches from executing one thread to another. It involves:
 \begin{enumerate}
@@ -156,8 +146,7 @@ Context switching is the process by which the CPU switches from executing one th
 \end{enumerate}
 This mechanism enables CPU virtualization but introduces performance overhead due to additional memory accesses.
 \end{definition}
-
-\subsection{Definition of a Process}
+\vspace{10px}
 \begin{definition}[Process]
 A process is defined by:
 \begin{itemize}
@@ -167,25 +156,23 @@ A process is defined by:
     \item Associated resources such as file descriptors.
 \end{itemize}
 \end{definition}
-
-\subsection{Memory Sharing and Virtualization}
+\vspace{10px}
 \begin{definition}[Memory Sharing]
 Memory in a system is space-shared among processes; however, virtualization ensures that each process operates within its own isolated address space. This is achieved through virtual-to-physical address translation.
 \end{definition}
-
-\subsection{Virtual and Physical Addresses}
+\vspace{10px}
+\begin{definition}[Virtual and Physical Addresses]
 Virtual addresses allow processes to operate as if they have exclusive access to memory. For example, two processes might both use the virtual address \texttt{0x400000}; however, these addresses map to different physical addresses:
 \begin{itemize}
-    \item Process \( P_1 \): Virtual \texttt{0x400000} \(\rightarrow\) Physical \texttt{0x1234AFF8}
-    \item Process \( P_2 \): Virtual \texttt{0x400000} \(\rightarrow\) Physical \texttt{0xABCD5678}
+  \item[-] Process \( P_1 \): Virtual \texttt{0x400000} \(\rightarrow\) Physical \texttt{0x1234AFF8}
+  \item[-] Process \( P_2 \): Virtual \texttt{0x400000} \(\rightarrow\) Physical \texttt{0xABCD5678}
 \end{itemize}
-
-\subsection{Process Virtual Address Space and Address Translation}
+\end{definition}
+\vspace{10px}
 \begin{definition}[Virtual Address Space]
 Each process is allocated its own virtual address space, which is shared among all its threads. This abstraction allows developers to ignore the complexities of physical memory allocation.
 \end{definition}
-
-\subsubsection{Address Translation}
+\vspace{10px}
 \begin{definition}[Address Translation]
 Address translation is the process by which a virtual memory address is converted into a physical memory address. While essential for memory virtualization, this translation incurs a performance cost.
 \end{definition}
@@ -198,3 +185,5 @@ Address translation is the process by which a virtual memory address is converte
 
 \subsection{Conclusion}
 Modern operating systems are designed to enable multiple programs to share CPU and memory resources seamlessly. Through context switching and address translation, both the CPU and memory are effectively virtualized. This abstraction simplifies development, as compilers and developers can design programs without needing to manage these low-level resource-sharing details directly.
+
+

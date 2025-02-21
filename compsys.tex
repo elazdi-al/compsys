@@ -1,58 +1,58 @@
-
 \documentclass[11pt,openany]{book}
-\raggedbottom
 
-% Load packages
-\usepackage[utf8]{inputenc} % for unicode input
-\usepackage{microtype}
+%% -------------------- Input and Microtypography --------------------
+\usepackage[utf8]{inputenc}          % Unicode input
+\usepackage{microtype}               % Improved typography
+
+%% -------------------- Page Layout and Hyperlinks --------------------
+\usepackage{geometry}
+\geometry{a4paper, left=20mm, right=20mm, top=25mm, bottom=30mm}
+\usepackage{hyperref}                % For clickable links
+\usepackage{tocbibind}               % Include bibliography in TOC
+
+%% -------------------- Math, Fonts, and Symbols --------------------
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
 \usepackage{bm}
+
+%% -------------------- Lists, Colors, and Graphics --------------------
 \usepackage{enumitem}
-\usepackage{geometry} % for page layout
-\usepackage{hyperref} % for hyperlinks
-\usepackage{tocbibind} % includes the bibliography in the table of contents
-\usepackage{amsmath, amsfonts, amssymb, amsthm} % for advanced math formatting
-\usepackage{lipsum} % generates filler text
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{circuits.logic.US,arrows.meta,positioning,calc,fit,decorations.markings,math}
+
+%% -------------------- Tables, Code Listings, and Miscellaneous --------------------
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{adjustbox}
+\usepackage{multirow}
 \usepackage{fancyhdr}
-\usepackage[table]{xcolor} % for cell coloring
-\usepackage{graphicx} % for including images
-\usepackage{booktabs} % for professional looking tables
-\usepackage[normalem]{ulem} % for underlining
-\usepackage[document]{ragged2e} % for text alignment
-\usepackage{tikz} % for drawing
+\usepackage[normalem]{ulem}
+\usepackage[document]{ragged2e}
+\usepackage{venndiagram}
+\usepackage{multicol}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{wrapfig}
 \usepackage{circuitikz}
 \usepackage{caption}
-\usepackage{venndiagram}
-\usepackage{multicol}
-\usepackage{listings}
-\usepackage{adjustbox}
-\usepackage{multirow}
 \usepackage{media9}
 
-
-
-% TikZ libraries
-\usetikzlibrary{circuits.logic.US, arrows.meta, positioning, calc, fit, decorations.markings, math}
-
-% Document geometry (page size, margins)
-\geometry{a4paper, left=20mm, right=20mm, top=25mm, bottom=30mm}
-
-% Custom page style for centered page numbers
+%% -------------------- Page Headers and Footers --------------------
 \pagestyle{fancy}
-\fancyhf{} % Clear all header and footer fields
-\fancyhead[RE]{\leftmark} % Left Even pages - Chapter number and name
-\fancyhead[RO]{Notes by Ali EL AZDI} % Right Odd pages - Custom message
-\fancyfoot[CE,CO]{\thepage} % Centered page number in the footer for both even and odd pages
+\fancyhf{} % clear all header/footer fields
+\fancyhead[RE]{\leftmark}             % Left header on even pages: chapter info
+\fancyhead[RO]{Notes by Ali EL AZDI}   % Right header on odd pages: custom text
+\fancyfoot[CE,CO]{\thepage}            % Center page number on all pages
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 
-% Custom commands
+%% -------------------- Custom Commands --------------------
 \newcommand*\xor{\oplus}
 \newcommand{\minidash}{\text{-}}
 
-% Custom spacing command
+% A custom vertical spacing command
+\usepackage{etoolbox}
 \makeatletter
 \newcommand{\vspacer}[1]{%
   \ifvmode
@@ -64,7 +64,6 @@
   \fi
 }
 \makeatother
-
 %%%%%%%%%%%%%%%%%%% Verilog CODE STYLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \definecolor{keywordcolor}{rgb}{0.5,0.0,0.33}
 \definecolor{backgroundcolor}{rgb}{0.95,0.95,1.0}
@@ -153,8 +152,6 @@
   {\lstset{style=assembly}}
   {}
 
-  
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%% JAVA CODE STYLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \definecolor{javakeywordcolor}{rgb}{0.0, 0.0, 0.5}
 \definecolor{javabackgroundcolor}{rgb}{0.95, 0.95, 0.95}
@@ -185,23 +182,27 @@
   {}
 
 
-%Custom Environment
-\theoremstyle{definition} % for definitions and examples
-\newtheorem{definition}{Definition}[section]
-\newtheorem{example}{Example}[section]
 
-\theoremstyle{plain} % for theorems
-\newtheorem{theorem}{Theorem}[section]
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Document begins
+%% -------------------- Custom Definition Environment --------------------
+\makeatletter
+\newenvironment{definition}[1][]{%
+  % Add an entry to the TOC: if a title is provided, include it.
+  \ifstrempty{#1}%
+    {\addcontentsline{toc}{subsection}{Definition}}%
+    {\addcontentsline{toc}{subsection}{Definition: #1}}%
+  % Print the heading: include the title if given.
+  \par\noindent\textbf{Definition\ifstrempty{#1}{}{ (#1)}.}\quad\itshape%
+}{\par}
+\makeatother
+% Other theorem-like environments
+\newtheorem{example}{Example}[subsection]
+\newtheorem{theorem}{Theorem}[subsection]
+%% -------------------- Document Begins --------------------
 \begin{document}
 
 \include{chapters/front/front} 
-
 \include{chapters/L1/L1} 
-
 \include{chapters/L2/L2} 
 
 \end{document}
-

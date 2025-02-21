@@ -2,10 +2,9 @@
 \chapter{Lecture 01: Introduction}
 
 In this lecture we explore the journey of a YouTube video—from its storage as a file to its transformation into bytes, its transmission over networks, and finally, its display on your device. We will introduce key concepts such as processes, threads, distributed applications, system calls, and the role of the operating system in managing hardware resources.
-
+\vfill
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{The Journey of a YouTube Video}
-
 To illustrate these ideas, consider the journey of a YouTube video. The video begins its existence as a file stored on a storage device, is loaded into memory as bytes, transmitted as packets over the Internet, and finally rendered on your screen.
 
 \begin{center}
@@ -25,16 +24,16 @@ The journey begins on your laptop.\\[5px]
 \hfill
 \begin{minipage}{0.45\textwidth}
   \begin{center}
-  \includegraphics[width=1.3\textwidth]{chapters/L1/images/threads.png}
+  \includegraphics[width=1.2\textwidth]{chapters/L1/images/threads.png}
 \end{center}
-\end{minipage}
-
-\subsubsection{Definition: Programs, Processes, and Threads}
+\end{minipage}\vfill
+\vfill
 \begin{definition}[Program, Process, Thread]
 A \textbf{program} is a set of instructions stored as a file on disk. When a program is invoked, the computer creates a \textbf{process}—a running instance of that program in main memory. A process may consist of one or more \textbf{threads}, which are the individual sequences of execution within the process.
 \end{definition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%jjjj%
+\vfill
 \subsection{Accessing a Video: A Distributed Application}
 
 When you use your web browser to access a video, the browser sends a message (or request) to a remote YouTube server. The browser process (running on your laptop) and the server process (running on a different computer) work together as parts of a \emph{distributed application}. 
@@ -69,8 +68,7 @@ The set of syscalls available to an application forms its \textbf{Application Pr
 \end{center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Definition: Interface (Abstraction)}
-
+\vfill
 \begin{definition}[Interface]
 An \textbf{interface} is a set of rules that defines how different components communicate. For instance, when sending a letter via the postal system, one must follow specific rules (e.g., write the address and affix a stamp). This interface abstracts the complexities of the postal system so that users do not need to understand its internal operations.
 \end{definition}
@@ -78,7 +76,7 @@ An \textbf{interface} is a set of rules that defines how different components co
 \begin{center}
   \includegraphics[width=0.65\textwidth]{chapters/L1/images/postal.png}
 \end{center}
-
+\vfill
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{System Calls (Syscalls)}
 
@@ -87,7 +85,7 @@ Syscalls form the interface between a process and external resources (like netwo
 \begin{center}
   \includegraphics[width=0.65\textwidth]{chapters/L1/images/syscalls.png}
 \end{center}
-
+\vfill
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{The Operating System}
@@ -120,16 +118,14 @@ When you click a YouTube link, the following sequence of events occurs:
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Definition: Program and ISA}
-
+\section{Program and ISA}
 \subsection{Program}
 A \textbf{program} is a set of instructions written by a human in a high-level programming language (such as C, Java, or Python) that implements an algorithm. When compiled, a program is translated into an \emph{executable} (or binary) that the CPU can run. The executable is expressed in the language defined by the computer's \textbf{Instruction Set Architecture} (ISA).
 
 \begin{center}
-  \includegraphics[width=0.85\textwidth]{chapters/L1/images/program.png}
+  \includegraphics[width=0.75\textwidth]{chapters/L1/images/program.png}
 \end{center}
 
-\subsection{Definition: Instruction Set Architecture (ISA)}
 \begin{minipage}{0.45\textwidth}
 \begin{definition}[ISA]
 The \textbf{Instruction Set Architecture} (ISA) is the set of all instructions that a CPU can understand and execute. It forms an interface between the compiler (which translates high-level code into machine code) and the CPU.
@@ -142,28 +138,27 @@ The \textbf{Instruction Set Architecture} (ISA) is the set of all instructions t
 \begin{center}
   \includegraphics[width=1.25\textwidth]{chapters/L1/images/isa.png}
 \end{center}
-\end{minipage}
-
-\subsection{Definition: The Von Neumann Architecture}
-
+\end{minipage}\\
+\vfill
+\begin{definition}[Von Neumann Architecture]
 The vast majority of computers today follow the \textbf{Von Neumann architecture}, which is characterized by a single main memory that holds both data and instructions.
 
 \begin{center}
   \includegraphics[width=0.55\textwidth]{chapters/L1/images/von.png}
 \end{center}
+\end{definition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Definition: CPU Frequency}
-
-A CPU’s frequency indicates how many cycles it can perform in one second. For example, a 4.05~GHz CPU performs 4.05 billion cycles per second. In this context, a \textbf{cycle} is the minimum time needed for the CPU to complete an operation or for a result to become ready.
-
+\begin{definition}[CPU Frequency]
+A CPU’s frequency indicates how many cycles it can perform in one second. For example, a 4.05~GHz CPU performs 4.05 billion cycles per second. In this context, a \textbf{cycle} is the minimum time needed for the CPU to complete an operation or for a result to become ready.\\
 \vspace{0.5em}
 {\textbf{Question:} What is the meaning of the Hz metric?}\\[0.5em]
 \textbf{Answer:} Hertz (Hz) measures the number of cycles per second.
-
 \vspace{0.5em}
 {\textbf{Question:} In the context of a CPU, what is a cycle?}\\[0.5em]
 \textbf{Answer:} A cycle is the minimum unit of time required for the CPU to produce a result from executing an instruction.
+\end{definition}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Frequency Imbalance and CPU Caching}
@@ -177,9 +172,8 @@ Modern systems exhibit a \emph{frequency imbalance} between the CPU and main mem
 \vspace{0.5em}
 {\textbf{Question:} How can we improve the efficiency of a system with such a frequency imbalance?}\\[0.5em]
 \textbf{Answer:} We can improve efficiency by using caching. A small, fast memory (the CPU cache) stores recently accessed data so that subsequent accesses are much faster.
-
+\newpage
 \subsection{CPU Caching}
-
 CPU caching adds a small amount of high-speed memory inside the CPU. When data is requested, the cache is checked first. If the data is already in the cache (a cache hit), the CPU retrieves it quickly. Otherwise (a cache miss), the data is fetched from the slower main memory and stored in the cache for future accesses.
 
 \begin{center}
@@ -190,7 +184,6 @@ CPU caching adds a small amount of high-speed memory inside the CPU. When data i
 \section{Memory Accesses vs. I/O}
 
 \subsection{Memory Accesses}
-
 When a process reads or writes data in main memory, it uses fast CPU instructions (load/store). These operations are efficient and do not interrupt the normal flow of the process.
 
 \subsection{Back to YouTube Fetching: System Calls in Action}
@@ -200,31 +193,30 @@ Returning to our YouTube example, when the browser process calls a \texttt{send}
 \begin{center}
   \includegraphics[width=0.85\textwidth]{chapters/L1/images/syscalls2.png}
 \end{center}
-
+\newpage
 \subsection{Mixing Interfaces}
 When a process makes a syscall for network communication (such as \texttt{send} or \texttt{recv}), the CPU transitions from running the process’s code to running the OS code associated with the network stack. This is an example of mixing different interfaces: the process interface (its own code) and the OS interface (syscalls).
 \begin{center}
   \includegraphics[width=0.65\textwidth]{chapters/L1/images/mix_int.png}
 \end{center}
-
-\subsection{Definition: Memory Access vs. I/O}
+\vfill
 \begin{definition}[Memory Access and I/O]
 \textbf{Memory Access} refers to the CPU’s direct read/write operations using load/store instructions in main memory. In contrast, \textbf{I/O (Input/Output)} involves accessing external devices (such as storage or network) via system calls. I/O operations are generally more expensive because they require the CPU to switch context to execute privileged OS code.
 \end{definition}
-
 \vspace{0.5em}
 {\color{red}\textbf{Exam Question:} How is reading from main memory different from reading from storage or the network?}\\[0.5em]
 \textbf{Answer:} Reading from main memory uses direct CPU instructions (load/store) and is very fast (tens to hundreds of nanoseconds), whereas reading from storage or the network requires a syscall, which interrupts the process and involves additional overhead (microseconds to milliseconds).
-
-\subsection{Definition: I/O}
-
+\vfill
 \begin{definition}[I/O]
 \textbf{I/O} (Input/Output) refers to operations that allow a process to access resources outside of its immediate control, such as storage devices or the network, via system calls. I/O operations are generally slower than direct memory accesses.
 \end{definition}
+\vspace{0.5em}
 {\color{red}\textbf{Exam Question:} If a program does not create or manipulate any data, will executing this program require reading anything from memory?}\\[0.5em]
 \textbf{Answer:} Yes, executing the program will still require reading something from memory. Even if the program does not create or manipulate any data, the CPU must at least fetch the instructions of the program itself from memory
+
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vfill
 \section{Communication Over the Internet}
 Internet communication involves transferring data over a network where different latencies are encountered: \\
 \begin{minipage}{0.45\textwidth}
@@ -244,7 +236,7 @@ Internet communication involves transferring data over a network where different
 \end{center}
 \end{minipage}\\[5px]
 These delays make network communication expensive in terms of time, which is why caching is critical.
-
+\vfill
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{End Systems}
 
@@ -253,7 +245,7 @@ The Internet is composed of \textbf{end systems}—devices that use the network 
 \begin{center}
   \includegraphics[width=0.65\textwidth]{chapters/L1/images/endsys.png}
 \end{center}
-
+\vfill
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Packet Switches and Network Links}
@@ -291,4 +283,3 @@ In this lecture, we traced the journey of a YouTube video and introduced several
   \includegraphics[width=0.65\textwidth]{chapters/L1/images/conclusion_youtube.png}
 \end{center}
 
-This lecture lays the foundation for understanding how low-level system components interact to support both local and distributed applications. In subsequent lectures, we will delve deeper into topics such as process management, communication protocols, and more advanced aspects of operating systems.
