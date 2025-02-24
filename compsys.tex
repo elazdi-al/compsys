@@ -9,7 +9,7 @@
 \geometry{a4paper, left=20mm, right=20mm, top=25mm, bottom=30mm}
 \usepackage{hyperref}                % For clickable links
 \usepackage{tocbibind}               % Include bibliography in TOC
-
+\usepackage{titlesec}
 %% -------------------- Math, Fonts, and Symbols --------------------
 \usepackage{amsmath, amsfonts, amssymb, amsthm}
 \usepackage{bm}
@@ -95,34 +95,47 @@
   {\lstset{style=verilogstyle}}
   {}
 
-%%%%%%%%%%%%%%%%%%% C CODE STYLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\definecolor{ckeywordcolor}{rgb}{0.8,0.1,0.1}
-\definecolor{cbackgroundcolor}{rgb}{0.95,0.95,0.95}
-\definecolor{ccommentcolor}{rgb}{0.0,0.5,0.0}
-\definecolor{cstringcolor}{rgb}{0.1,0.1,0.8}
-\definecolor{crulecolor}{rgb}{0.5,0.5,0.5}
-\definecolor{ccodegray}{rgb}{0.6,0.6,0.6}
 
-\lstdefinestyle{cstyle}{
+%%%%%%%%%%%%%%%%%%% C CODE STYLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{xcolor}
+\usepackage{listings}
+
+% Define custom colors for C syntax highlighting
+\definecolor{CKeyWord}{rgb}{0.8,0.1,0.1}      % For C keywords (e.g., int, return)
+\definecolor{CBackground}{rgb}{0.95,0.95,0.95} % Background color for code blocks
+\definecolor{CComment}{rgb}{0.0,0.5,0.0}        % Comment color
+\definecolor{CString}{rgb}{0.1,0.1,0.8}         % String literal color
+\definecolor{CRule}{rgb}{0.5,0.5,0.5}           % Frame rule color
+\definecolor{CNumber}{rgb}{0.6,0.6,0.6}         % Line number color
+
+% Define a custom listing style for C code
+\lstdefinestyle{CStyle}{
   language=C,
-  basicstyle=\ttfamily\footnotesize,
-  backgroundcolor=\color{cbackgroundcolor},
-  commentstyle=\color{ccommentcolor}\ttfamily,
-  keywordstyle=\color{ckeywordcolor},
-  stringstyle=\color{cstringcolor},
-  showstringspaces=false,
-  frame=single,
-  rulecolor=\color{crulecolor},
-  breaklines=true,
+  basicstyle=\footnotesize\ttfamily,
+  backgroundcolor=\color{CBackground},
+  commentstyle=\color{CComment}\itshape,
+  keywordstyle=\color{CKeyWord}\bfseries,
+  stringstyle=\color{CString},
   numbers=left,
-  numberstyle=\tiny\color{ccodegray},
-  tabsize=2
+  numberstyle=\tiny\color{CNumber},
+  stepnumber=1,
+  numbersep=10pt,
+  showspaces=false,
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{CRule},
+  tabsize=2,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
 }
 
-\lstnewenvironment{cc}
-  {\lstset{style=cstyle}}
-  {}
-
+% Define a new environment for C code blocks using the custom style.
+% Optional arguments can be passed to adjust settings further.
+\lstnewenvironment{cc}[1][]{
+  \lstset{style=CStyle, #1}
+}{}
 %%%%%%%%%%%%%%%%%%% Assembly CODE STYLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \definecolor{akeywordcolor}{rgb}{0.0, 0.2, 0.4}
 \definecolor{abackgroundcolor}{rgb}{0.98, 0.99, 1.0}
@@ -198,11 +211,13 @@
 % Other theorem-like environments
 \newtheorem{example}{Example}[subsection]
 \newtheorem{theorem}{Theorem}[subsection]
+\titlespacing{\section}{0pt}{10pt}{5pt} % {left}{before}{after}
 %% -------------------- Document Begins --------------------
 \begin{document}
-
+\raggedbottom
 \include{chapters/front/front} 
 \include{chapters/L1/L1} 
 \include{chapters/L2/L2} 
+\include{chapters/L3/L3} 
 
 \end{document}

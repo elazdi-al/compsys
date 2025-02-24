@@ -143,6 +143,7 @@ Context switching is the process by which the CPU switches from executing one th
 \begin{enumerate}
     \item Saving the current thread's CPU context to memory.
     \item Restoring the CPU context of the thread to be executed next.
+    \item[] Each thread has the illusion that it's occupying the CPU \textbf{alone}.
 \end{enumerate}
 This mechanism enables CPU virtualization but introduces performance overhead due to additional memory accesses.
 \end{definition}
@@ -156,6 +157,7 @@ A process is defined by:
     \item Associated resources such as file descriptors.
 \end{itemize}
 \end{definition}
+\textit{Remark: If two threads belong to the same process, does each have its own CPU context, or do they share one? The answer is that each thread should be able to continue its execution independently.}
 \vspace{10px}
 \begin{definition}[Memory Sharing]
 Memory in a system is space-shared among processes; however, virtualization ensures that each process operates within its own isolated address space. This is achieved through virtual-to-physical address translation.
@@ -177,6 +179,17 @@ Each process is allocated its own virtual address space, which is shared among a
 Address translation is the process by which a virtual memory address is converted into a physical memory address. While essential for memory virtualization, this translation incurs a performance cost.
 \end{definition}
 
+\subsection{Stack Smashing}
+Stack smashing is a type of buffer overflow vulnerability where an attacker deliberately overwrites parts of the memory on the call stack. This typically happens when a program writes more data into a fixed-size buffer than it can accommodate, thereby corrupting adjacent memory areas such as the function's return address.
+
+\paragraph{How It Works:}
+When a function is called, a stack frame is created that contains local variables, return addresses, and other control data. If a buffer does not have proper bounds checking, an input exceeding the buffer's capacity can overflow into these critical areas. For example:
+\begin{enumerate}
+    \item A fixed-size buffer is allocated on the stack.
+    \item Excess input data overwrites memory beyond the buffer.
+    \item The return address (or other control data) is corrupted.
+    \item On function return, control is transferred to an address chosen by the attacker, potentially executing malicious code.
+\end{enumerate}
 \subsection{Summary: CPU and Memory Virtualization}
 \begin{itemize}
     \item \textbf{CPU Virtualization:} Threads time-share the CPU through context switching, which gives each thread the illusion of exclusive CPU access.
