@@ -204,14 +204,14 @@ When a process makes a syscall for network communication (such as \texttt{send} 
 \textbf{Memory Access} refers to the CPU’s direct read/write operations using load/store instructions in main memory. In contrast, \textbf{I/O (Input/Output)} involves accessing external devices (such as storage or network) via system calls. I/O operations are generally more expensive because they require the CPU to switch context to execute privileged OS code.
 \end{definition}
 \vspace{0.5em}
-{\color{red}\textbf{Exam Question:} How is reading from main memory different from reading from storage or the network?}\\[0.5em]
+\textbf{Exam Question:} How is reading from main memory different from reading from storage or the network? \\[0.5em]
 \textbf{Answer:} Reading from main memory uses direct CPU instructions (load/store) and is very fast (tens to hundreds of nanoseconds), whereas reading from storage or the network requires a syscall, which interrupts the process and involves additional overhead (microseconds to milliseconds).
 \vfill
 \begin{definition}[I/O]
 \textbf{I/O} (Input/Output) refers to operations that allow a process to access resources outside of its immediate control, such as storage devices or the network, via system calls. I/O operations are generally slower than direct memory accesses.
 \end{definition}
 \vspace{0.5em}
-{\color{red}\textbf{Exam Question:} If a program does not create or manipulate any data, will executing this program require reading anything from memory?}\\[0.5em]
+\textbf{Exam Question:} If a program does not create or manipulate any data, will executing this program require reading anything from memory?\\[0.5em]
 \textbf{Answer:} Yes, executing the program will still require reading something from memory. Even if the program does not create or manipulate any data, the CPU must at least fetch the instructions of the program itself from memory
 
 \newpage

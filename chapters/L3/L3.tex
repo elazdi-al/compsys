@@ -1,23 +1,10 @@
-
-\chapter{Sharing the CPU}
+\chapter{L3 - Sharing the CPU}
 
 This chapter introduces the mechanisms by which an operating system (OS) manages access to the CPU, ensuring both security and fairness among processes. We discuss CPU privilege levels, the limited direct execution model, and the role of system calls (syscalls) in process management.
 \vfill
-\section{CPU Privilege Level}
+\section{The OS as a Special Program}
 
-\textbf{Professor Analogy -} Imagine you have children who want to watch TV. You can either keep the remote with you and ask them to call you whenever they need to change the channel, or you can enable Kids Mode on the TV, allowing them limited access without needing to ask for permission each time. \\
-The CPU operates in different modes to regulate access to its instruction set:
-\begin{itemize}
-  \item[-] \textbf{Low Privilege (User Mode):} A normal process or thread runs in this mode and can execute only a restricted subset of instructions.
-  \item[-] \textbf{High Privilege (Kernel Mode):} The operating system runs in this mode and has full access to all instructions and hardware resources.
-\end{itemize}
-
-When a regular thread executes, the CPU remains in low privilege mode. Conversely, OS code runs in high privilege mode, allowing it to perform otherwise restricted operations. This design follows the principle of least privilege, ensuring that processes have only the necessary level of access.
-
-\begin{center}
-  \includegraphics[width=0.8\textwidth]{chapters/L3/images/priviledge.png}
-\end{center}
-\newpage
+The operating system (OS) is a fundamental software layer that manages hardware resources and provides essential services for user applications. Unlike typical applications, the OS operates at different privilege levels and ensures secure and efficient execution of processes and threads.
 \subsection{Limited Direct Execution}
 \textbf{Professor Analogy cont. -} The children have direct access to the TV but are restricted by Kids Mode. \\
 Limited direct execution is a method that allows a thread to run directly on the CPU while enforcing certain restrictions:
@@ -25,19 +12,21 @@ Limited direct execution is a method that allows a thread to run directly on the
   \item[-] \emph{Direct Execution:} The CPU executes the thread's instructions without any intermediate emulation.
   \item[-] \emph{Limited:} The thread cannot perform operations that require high privileges; instead, it must request system assistance via syscalls.
 \end{itemize}
-
-This approach minimizes overhead while ensuring that potentially unsafe operations are controlled by the OS.
-\section{The OS as a Special Program}
-The operating system (OS) is a fundamental software layer that manages hardware resources and provides essential services for user applications. Unlike typical applications, the OS operates at different privilege levels and ensures secure and efficient execution of processes and threads.
-
+The CPU runs in Limited Direct Execution. Let's see how it's limited\cdots
+\newpage
 \subsection{CPU Privilege Levels and Execution Modes}
-
+\textbf{Professor Analogy -} Imagine you have children who want to watch TV. You can either keep the remote with you and ask them to call you whenever they need to change the channel, or you can enable Kids Mode on the TV, allowing them limited access without needing to ask for permission each time. \\[3px]
+\textit{Personal Remark - Kernal code \emph{always} run in High Privilege mode, and because of this we say that the OS \emph{may} run in High Privilege mode (kernel is inside of the os), do not confuse both !}\\[3px]
 The OS shares the CPU and main memory with normal user processes and threads. However, its execution mode differs based on its role at any given time:
 
 \begin{itemize}
-  \item[-] When the OS executes, the CPU may be in \textbf{high privilege mode} (kernel mode), allowing it unrestricted access to all system resources.
+  \item[-] When the OS executes, the CPU \textit{may} be in \textbf{high privilege mode} (often called kernel mode), allowing it unrestricted access to all system resources.
 \item[-] When a normal process or thread executes, the CPU is in \textbf{low privilege mode} (user mode), restricting access to critical system resources.
 \end{itemize}
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{chapters/L3/images/priviledge.png}
+\end{center}
 
 This privilege system exists primarily for security reasons, enforcing the \textbf{principle of least privilege}, where each process has only the necessary access rights required to perform its task. 
 
