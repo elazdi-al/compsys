@@ -13,6 +13,13 @@
 %% -------------------- Math, Fonts, and Symbols --------------------
 \usepackage{amsmath, amsfonts, amssymb, amsthm}
 \usepackage{bm}
+\usepackage{tabularx}
+\usepackage{array}
+
+% Define custom column types: C for centered and L for left-justified
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
 
 %% -------------------- Lists, Colors, and Graphics --------------------
 \usepackage{enumitem}
@@ -29,14 +36,6 @@
 \usepackage{fancyhdr}
 \usepackage[normalem]{ulem}
 \usepackage[document]{ragged2e}
-\usepackage{venndiagram}
-\usepackage{multicol}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage{wrapfig}
-\usepackage{circuitikz}
-\usepackage{caption}
-\usepackage{media9}
 
 %% -------------------- Page Headers and Footers --------------------
 \pagestyle{fancy}
@@ -221,5 +220,6 @@
 \include{chapters/L3/L3} 
 \include{chapters/L4/L4}
 \include{chapters/L5/L5}
-
+\include{chapters/L6/L6}
+\include{chapters/L7/L7}
 \end{document}
