@@ -347,10 +347,10 @@ These factors can be quantified using the following key metrics:
   \item \textbf{Throughput:} The amount of data processed per unit time (e.g., MB/s)
   \item \textbf{IOPS (I/O Operations Per Second):} The number of read/write operations a storage system can perform in one second
 \end{itemize}
-
+\newpage
 \subsection{Performance Optimization Strategies}
 
-File systems employ various strategies to optimize performance, each addressing different performance bottlenecks:
+File systems employ various strategies to optimize performance, each addressing different performance bottlenecks \\[5px]
 
 \begin{definition}[Block Cache]
 A memory area that temporarily stores recently accessed disk blocks to reduce the need for physical disk operations when the same data is requested again.
@@ -423,7 +423,7 @@ The block cache serves as a critical performance optimization layer in file syst
   \end{center}
 \end{minipage}
 \end{example}
-\newpage
+\vspace{10px}
 \subsubsection{Key Block Cache Characteristics}
 \begin{itemize}
   \item[-] Dynamically adjusts size based on system memory availability
@@ -433,41 +433,309 @@ The block cache serves as a critical performance optimization layer in file syst
 \end{itemize}
 
 These performance optimization strategies collectively ensure that file systems can deliver high throughput and low latency despite the inherent performance limitations of physical storage devices.
+\newpage
+\subsection{Optimizing I/O Operations Through Batching}
 
-\subsection{Batching Operations}
-Each I/O operation is costly (latency), with limited concurrency (IOPS)
+\begin{definition}[I/O Batching]
+The process of combining multiple I/O operations into larger, more efficient transfers to minimize overall system overhead and maximize throughput.
+\end{definition}
 
-Idea: Perform fewer operations with larger transfers
+Modern file systems employ batching strategies to address two key performance limitations:
+\begin{itemize}
+    \item High latency cost per individual I/O operation
+    \item Limited I/O operations per second (IOPS) capacity
+\end{itemize}
 
-HDD: when consecutive blocks on disk belong to the same inode
-Notion of “disk fragmentation” : a metric of what fraction of inode content are not on consecutive locations on disk
+\subsubsection{Storage-Specific Optimizations}
 
-SDD: Can further exploit underlying hardware parallelism
+Different storage technologies benefit from distinct batching strategies:
 
-\subsection{Delaying Operations}
-A process must block on a read operation.  But what about a write?
+\begin{itemize}
+    \item \textbf{Hard Disk Drives (HDD):}
+    \begin{itemize}
+        \item Optimizes for sequential access by grouping operations on consecutive disk blocks
+        \item Minimizes seek time by processing physically proximate blocks together
+        \item Performance heavily influenced by disk fragmentation - the degree to which an inode's blocks are non-contiguous
+    \end{itemize}
+    
+    \item \textbf{Solid State Drives (SSD):}
+    \begin{itemize}
+        \item Leverages internal parallelism for concurrent operations
+        \item Benefits from larger transfer sizes due to internal architecture
+        \item Less sensitive to physical block placement
+    \end{itemize}
+\end{itemize}
 
-Idea: Delay all write operations
-Perform them asynchronously (typical: wait at most 30 seconds)
-Reorder operations to maximize throughput 
-Consequence: content will be lost if the OS crashes
-\subsection{Block cache does affect data persistence}
-File systems maintain many data structures
-Bitmap of free blocks and inodes 
-Directories
-Inodes
-Data blocks
-Data structure are cached for performance:
-Works great for read operations …
-… But what about writes?
+\subsection{Asynchronous Operations and Write Delays}
 
-\subsection{Writes are mostly affected due to caching}
-Different caching policies possible
-Write-back caches
-Delay writes: Higher performance at the cost of potential inconsistency
-Write-through caches
-Write synchronously but poor performance (fsync)
+While read operations typically require immediate process blocking, write operations present opportunities for optimization through delayed execution:
 
+\begin{example}[Asynchronous Write Operations]
+When an application writes data:
+\begin{enumerate}
+    \item Data is initially stored in memory buffers
+    \item Write operations are queued for asynchronous processing
+    \item System performs actual disk writes within a defined interval (typically 30 seconds)
+    \item Operations may be reordered to optimize throughput
+\end{enumerate}
+\end{example}
+\vspace{10px}
+\begin{definition}[Write Delay]
+A performance optimization technique where write operations are temporarily held in memory and executed asynchronously to improve system throughput.
+\end{definition}
+\vspace{5px}
 
+\textbf{Important Note:} While write delays improve performance, they introduce a risk of data loss in case of system crashes before cached data is written to disk.
 
+\subsection{Cache Impact on Data Persistence}
+File systems cache multiple critical data structures to enhance performance:
+\begin{itemize}
+    \item[-] Free block and inode bitmaps
+    \item[-] Directory entries
+    \item[-] Inode metadata
+    \item[-] Data blocks
+\end{itemize}
+
+While caching significantly improves read performance, it introduces complexity for write operations due to the need to maintain data consistency between memory and disk.
+
+\subsection{Write Caching Policies}
+File systems implement different caching strategies to balance performance and data consistency:
+\vspace{5px}
+\begin{definition}[Write-Back Cache]
+A caching policy where modifications are initially made to the cache and later written to disk, prioritizing performance over immediate consistency.
+\end{definition}
+\vspace{5px}
+\begin{definition}[Write-Through Cache]
+A caching policy where modifications are immediately written to both cache and disk, ensuring consistency at the cost of performance.
+\end{definition}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Cache Policy} & \textbf{Advantages} & \textbf{Disadvantages} \\
+\hline
+Write-Back & Higher performance & Risk of data loss \\
+& Better I/O optimization & during system crashes \\
+\hline
+Write-Through & Guaranteed consistency & Lower performance \\
+& Immediate persistence & Higher I/O overhead \\
+\hline
+\end{tabular}
+\end{center}
+
+Applications can force immediate disk writes using the \texttt{fsync} system call when data consistency is critical.
+
+\section{Crash Consistency}
+
+Suppose we are appending a data block to a file. This operation involves several steps: adding a new data block \( D2 \), updating the inode, and updating the data bitmap.
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{chapters/L7/images/update.png}
+\end{center}
+
+What happens if a crash or power outage occurs during these writes? The key issue is that file system operations often involve multiple write operations, and a failure between these operations can lead to an inconsistent state.
+
+\subsection{Single Write Scenario}
+
+Consider the case where only one write operation is successfully written to disk before a crash. Let's examine a few possibilities:
+
+\begin{itemize}
+    \item \textbf{Data Block \( D2 \) is written}: The data is written, but there is no valid inode pointing to it. \( D2 \) appears as a free block in the metadata. The write is essentially lost, but the file system metadata structures remain consistent.
+    \item \textbf{Inode ( \( Iv2 \) ) is written}: If only the updated inode \( Iv2 \) is written, following the block pointer will lead to reading garbage data. This results in an inconsistent file system because the data bitmap indicates that the block is free, while the inode claims it is in use.
+    \item \textbf{Updated Data Bitmap is written}: If only the updated data bitmap is written, the file system becomes inconsistent because the data bitmap indicates that a data block is in use, but no inode points to it.
+\end{itemize}
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{chapters/L7/images/single-write.png}
+\end{center}
+
+\subsection{Multiple Writes Scenario}
+
+Now, let's consider scenarios where two write operations succeed before a crash:
+
+\begin{itemize}
+    \item \textbf{Inode and Data Bitmap updates succeed}: The file system remains consistent from a metadata perspective. However, reading the new block will return garbage data because the actual data block \( D2 \) was not successfully written.
+    \item \textbf{Inode and Data Block updates succeed}: This leads to an inconsistent file system because the inode points to the new data block, but the data bitmap might not reflect that the block is in use.
+    \item \textbf{Data Bitmap and Data Block updates succeed}: This also results in an inconsistent file system because the data bitmap marks the data block as used, but no inode points to it.
+\end{itemize}
+
+Caching exacerbates these issues because data can be written asynchronously, making it harder to predict the order of writes.
+
+If the file system is interrupted between these writes, it can lead to an inconsistent state due to:
+
+\begin{itemize}
+    \item Power loss and hard reboot
+    \item Kernel panic
+    \item File system bugs
+\end{itemize}
+
+Therefore, a mechanism is needed to recover from or fix these inconsistent states.
+\newpage
+\subsection{The Consistent Update Problem}
+
+The fundamental problem is that several file system operations update multiple data structures. Caching can worsen the issue because data can be written asynchronously. If a file system operation is interrupted between writes, it may leave the data in an inconsistent state. This can occur due to power loss, hard reboots, kernel panics, or file system bugs.
+
+Therefore, the goal is to have a mechanism to recover from (or fix) an inconsistent state.
+
+\subsection{Consistency Solution \#1: File System Checker (FSCK)}
+
+One approach to address file system inconsistencies is using a file system checker (FSCK). FSCK is a utility that checks the consistency of the file system after a certain number of mount operations or after a crash. It performs hundreds of consistency checks across different fields, such as:
+
+\begin{itemize}
+    \item Do superblocks match?
+    \item Is the file system size reasonable?
+    \item Are link counts equal to the number of directory entries?
+\end{itemize}
+\subsection{The File System Checker}
+
+The file system checker (\texttt{fsck}) is a crucial utility for maintaining file system integrity. It is automatically invoked after a specific number of mount operations or following a system crash to ensure the file system's consistency. The \texttt{fsck} performs numerous checks across various file system components, addressing potential issues like incorrect link counts, data bitmap errors, duplicate pointers, and invalid pointers.
+
+The following are examples of the consistency checks \texttt{fsck} performs:
+
+\begin{itemize}
+    \item [-] \textbf{Link Count Inconsistencies:}
+    The \texttt{fsck} verifies that the number of directory entries pointing to an inode matches the inode's link count. For instance, if two directory entries point to the same inode but the inode's link count is set to 1, \texttt{fsck} detects this inconsistency.
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{chapters/L7/images/fsck-link.png}
+    \end{center}
+\newpage
+    \item [-] \textbf{Lost Inodes:}
+    If an inode has a link count greater than zero but no directory entries point to it, the \texttt{fsck} moves the corresponding file to the \texttt{lost+found} directory, allowing for potential recovery by the system administrator.
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{chapters/L7/images/fsck-link2.png}
+    \end{center}
+
+    \item [-] \textbf{Data Bitmap Errors:}
+    The \texttt{fsck} ensures the data bitmap accurately reflects the allocation status of blocks. If an inode points to a block, but the corresponding bit in the data bitmap is 0 (indicating the block is free), \texttt{fsck} corrects the bitmap to reflect the block's usage.
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{chapters/L7/images/fsck-bitmap.png}
+    \end{center}
+
+    \item [-] \textbf{Duplicate Pointers:}
+    The \texttt{fsck} identifies and resolves situations where multiple inodes point to the same data block, which can lead to data corruption. In such cases, \texttt{fsck} may create a duplicate of the block, updating one of the inodes to point to the new duplicate, thus preserving data integrity.
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{chapters/L7/images/fsck-dupp.png}
+    \end{center}
+\newpage
+    \item [-] \textbf{Invalid Pointers:}
+    The \texttt{fsck} checks for inodes pointing to blocks with numbers exceeding the total number of blocks in the file system. Such pointers are invalid and can cause crashes or data corruption. The \texttt{fsck} removes these invalid pointers to prevent further issues.
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{chapters/L7/images/fsck-bad.png}
+    \end{center}
+\end{itemize}
+
+\subsection{Problems with FSCK}
+
+While \texttt{fsck} is essential, it has limitations:
+
+\begin{itemize}
+    \item [-] \textbf{Functionality:}
+    \texttt{fsck} aims to bring the file system to a consistent state, which is not always the "correct" state. Determining the appropriate corrections can be challenging, and in severe cases, reformatting the disk may seem like the easiest solution, albeit with significant data loss.
+
+    \item [-] \textbf{Performance:}
+    \texttt{fsck} can be slow, sometimes taking hours to complete, especially on large file systems. This prolonged downtime can be disruptive.
+\end{itemize}
+
+\section{Consistency Solution \#2: Journaling}
+
+To address the limitations of \texttt{fsck}, journaling offers an alternative approach to maintaining file system consistency with the following goals:
+
+\begin{itemize}
+    \item [-] Minimize the amount of work required for recovery after a crash.
+    \item [-] Achieve the \textit{correct} state of the file system, not just a consistent one.
+\end{itemize}
+
+The core idea behind journaling is to record changes in a journal (or log) before applying them to the actual file system. This journal serves as a historical record of operations, allowing the system to recover to a known good state in the event of a crash. No need to scan the entire disk
+\vspace{5px}
+\begin{definition}[Journaling]
+    Journaling is a technique used in file systems where all intended modifications are first recorded in a sequential log (the "journal") before being committed to the main file system. This write-ahead logging ensures atomicity and durability of operations, facilitating recovery after a crash.
+\end{definition}
+\vspace{5px}
+Before modifying any data (read, write, delete, etc.), the changes are first recorded in the journal. The journal is a special area on the disk that stores data in a write-ahead fashion. Journaling leverages the atomicity of transactions to provide crash consistency.
+
+\subsection{A Principled Approach: Transactions}
+
+Journaling relies on the concept of transactions to ensure data integrity.
+
+\begin{definition}[Transaction]
+    A transaction is a group of operations treated as a single logical unit of work. It must adhere to the ACID properties: Atomicity, Consistency, Isolation, and Durability.
+\end{definition}
+
+\begin{itemize}
+    \item [-] \textbf{Atomic:} A transaction is indivisible; either all operations within it are executed, or none are.
+    \item [-] \textbf{Consistent:} A transaction must maintain the integrity of the data. It moves the system from one valid state to another.
+    \item [-] \textbf{Isolated:} Concurrent transactions should not interfere with each other. The effects of one transaction should not be visible to others until it is complete.
+    \item [-] \textbf{Durable:} Once a transaction is committed, its effects are permanent and survive system failures.
+\end{itemize}
+
+Transactions can have two outcomes:
+
+\begin{itemize}
+    \item [-] \textbf{Commit:} The transaction is successfully completed, and its changes are made permanent.
+    \item [-] \textbf{Abort:} The transaction is terminated, and any changes made during the transaction are rolled back, restoring the system to its previous state.
+\end{itemize}
+
+\subsection{How Journaling Works}
+
+Journaling groups file system operations into atomic and consistent units using transactions. \texttt{TxBeg} and \texttt{TxEnd} markers denote the start and end of a transaction. The process involves writing to the journal first and then writing the actual file system blocks (checkpoint) in a specific order. Journaling can be applied to both data and metadata blocks.
+
+\begin{center}
+    \includegraphics[width=0.45\textwidth]{chapters/L7/images/journal-record.png}
+\end{center}
+
+\subsection{Data Journaling: An Example}
+
+Consider adding a new block \texttt{D2} to a file. This can be viewed as similar to operations in \texttt{git}. The steps involved in data journaling are:
+
+\begin{enumerate}
+    \item Write the following blocks to the journal: \texttt{TxBeg | Iv2 | Bv2 | D2 | TxEnd}. Here, \texttt{Iv2} represents the inode update, \texttt{Bv2} represents the bitmap information, and \texttt{D2} is the new data block. Writing each record to a separate block ensures atomicity.
+    \item Write the blocks \texttt{Iv2}, \texttt{Bv2}, and \texttt{D2} to their respective locations in the file system (checkpoint).
+    \item Mark the transaction as free in the journal (i.e., remove it).
+\end{enumerate}
+
+In case of a crash:
+
+\begin{itemize}
+    \item [-] If the crash occurs before the log is updated, the changes are ignored as if the transaction never happened.
+    \item [-] If the crash occurs after the log is updated but before the checkpoint, the changes are replayed from the log back to the disk during recovery.
+\end{itemize}
+
+\subsection{Simplified Journaling Example}
+
+Consider the goal of atomically writing the value 10 to block 0 and the value 5 to block 1.
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{chapters/L7/images/journal-example.png}
+\end{center}
+
+A naive approach of directly writing to the blocks is problematic because a crash between the two writes could leave the file system in an inconsistent state.
+
+Journaling solves this by first writing the changes to the journal within a transaction.
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{chapters/L7/images/journal-example2.png}
+\end{center}
+
+The steps are as follows:
+
+\begin{enumerate}
+    \item Write the transaction begin marker (\texttt{TxBeg}) to the journal.
+    \item Write the data for block 0 (value 10) to the journal.
+    \item Write the data for block 1 (value 5) to the journal.
+    \item Write a valid block indicator to the journal, signifying that the transaction completed successfully in the journal.
+    \item Write the data for block 0 (value 10) to block 0 in the main file system.
+    \item Write the data for block 1 (value 5) to block 1 in the main file system.
+\end{enumerate}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{chapters/L7/images/journal-example3.png}
+\end{center}
+\newpage
+\textbf{Crash Scenarios:}
+
+\begin{itemize}
+    \item [-] \textbf{Crash before time unit 3:} The file system retains the old data, as the transaction was not fully written to the journal.
+    \item [-] \textbf{Crash after time unit 3 but before time unit 6:} Upon recovery, the system detects the incomplete transaction in the journal and replays the changes to blocks 0 and 1, ensuring the new data is present.
+    \item [-] \textbf{Crash after time unit 6:} The new data is already present in the file system, and no recovery is needed.
+\end{itemize}
 \end{document}
