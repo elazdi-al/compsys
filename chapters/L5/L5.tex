@@ -1,3 +1,5 @@
+\documentclass[../../compsys.tex]{subfiles}
+\begin{document}
 \chapter{L5 - Paging}
 \textit{Fellow syscoms, this is yet another chapter that was already studied in computer architecture, however, don't be discouraged, I'll do my best to make things clear. Again, please send me a text if anything lacks clarity, with that said, good luck.}\\[5px]
 \textit{For context, we've established that a specialized hardware was required to efficiently translate virtual addresses into physical addresses. However, this introduces another critical requirement: optimizing memory usage. To address this, paging becomes essential, enabling dynamic memory allocation and effectively managing address space constraints.}
@@ -611,3 +613,4 @@ Swapping out is the process of moving pages from main memory to disk, thereby fr
 
 \subsection{Conclusion}
 Swapping is a vital mechanism in memory management, enabling the OS to manage limited physical memory efficiently by transferring inactive pages to disk. This dynamic exchange between main memory and disk ensures that active processes have the resources they need while also allowing the system to support a larger number of processes. However, careful policy decisions are essential to minimize overhead and avoid issues such as thrashing.
+\end{document}

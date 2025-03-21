@@ -1,3 +1,5 @@
+\documentclass[../../compsys.tex]{subfiles}
+\begin{document}
 \chapter{L3 - Sharing the CPU}
 
 This chapter introduces the mechanisms by which an operating system (OS) manages access to the CPU, ensuring both security and fairness among processes. We discuss CPU privilege levels, the limited direct execution model, and the role of system calls (syscalls) in process management.
@@ -291,3 +293,4 @@ Some critical processes managed by the OS include:
 \subsection*{Conclusion - The Role of Syscalls}
 
 Syscalls provide the interface through which processes access system resources such as storage and networks. They also facilitate self-management operations, including process creation, modification, and cleanup. Through mechanisms such as limited direct execution, exceptions, and interrupts, the OS ensures that the CPU is shared safely and efficiently among all processes.
+\end{document}

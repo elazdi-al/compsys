@@ -1,3 +1,5 @@
+\documentclass[../../compsys.tex]{subfiles}
+\begin{document}
 \chapter{File System II}
 \vfill
 \section{Block Allocation Strategies}
@@ -168,3 +170,304 @@ The allocation dynamics are designed to be adaptive:
   \includegraphics[width=0.8\textwidth]{chapters/L7/images/multi.png}
 \end{center}
 The multi-level indexing file allocation method enhances both performance and scalability by adapting the index structure to the file size, ensuring low overhead for small files while supporting efficient access for large files.
+
+
+\newpage
+\section{File Operations in a Filesystem}
+
+Reading and writing files in a filesystem involve complex sequences of operations that extend beyond simply accessing data. These operations require traversing directory structures, accessing metadata, and managing disk blocks. This section explores the mechanics of these fundamental operations.
+
+\subsection{Reading from a File}
+When an application reads data from a file, the operating system performs multiple disk operations to locate and retrieve the requested data. The process begins with opening the file and continues with reading data blocks as needed.
+
+\subsubsection{Opening a File for Reading}
+Before data can be read, the file must be opened:
+
+\begin{example}[Opening a file]
+\texttt{open("/cs202/w07", O\_RDONLY)}
+\end{example}
+
+This system call initiates a sequence of operations:
+\begin{itemize}
+    \item The filesystem traverses the directory tree to locate the inode for "w07"
+    \item It reads the inode to verify access permissions
+    \item Upon successful verification, it returns a file descriptor that serves as a reference for subsequent operations
+\end{itemize}
+
+\subsubsection{Reading Data}
+Each \texttt{read()} operation requires multiple steps:
+\begin{itemize}
+    \item The filesystem reads the file's inode to locate the appropriate data blocks
+    \item It reads the data block(s) corresponding to the current file offset
+    \item It updates the last access time in the inode
+    \item It updates the file offset in the in-memory open file table for the file descriptor
+\end{itemize}
+\newpage
+\begin{example}[Reading the First Two Data Blocks from "/cs202/w07"]
+\leavevmode
+\upshape
+Let's look at the complete sequence of operations required to open a file and read its first two data blocks.
+
+\textbf{Step 1: Opening the File}
+\begin{enumerate}
+    \item \textbf{Root inode access:} The system reads the inode of the root directory (/) to locate its data blocks.
+    
+    \item \textbf{Root directory data:} The filesystem reads the root directory's data blocks to find the entry for "cs202".
+    
+    \item \textbf{cs202 inode access:} Using information from the root directory, it reads the inode for the "cs202" subdirectory.
+    
+    \item \textbf{cs202 directory data:} It reads the data blocks of the "cs202" directory to locate the entry for "w07".
+    
+    \item \textbf{w07 inode access:} Finally, it reads the inode associated with "w07", which contains the metadata and pointers to the file's data blocks.
+\end{enumerate}
+
+At this point, the file is open and the system has established the necessary references to access its data.
+
+\textbf{Step 2: First read() Call}
+\begin{enumerate}
+    \item \textbf{w07 inode read:} The system reads the inode again to retrieve the pointer to the first data block and verify metadata.
+    
+    \item \textbf{Data block access:} It reads the actual first data block of file "w07".
+    
+    \item \textbf{Inode update:} It writes to the inode to update the last access timestamp.
+\end{enumerate}
+
+\textbf{Step 3: Second read() Call}
+\begin{enumerate}
+    \item \textbf{w07 inode read:} The system reads the inode again to retrieve the pointer to the second data block.
+    
+    \item \textbf{Data block access:} It reads the second data block of file "w07".
+    
+    \item \textbf{Inode update:} It writes to the inode to update the last access timestamp again.
+\end{enumerate}
+\end{example}
+
+The sequence of operations for file reads can be visualized as follows:
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{chapters/L7/images/read.png}
+\end{center}
+
+\subsection{Writing to a File}
+Writing to a file involves more complex operations than reading, particularly when new data blocks need to be allocated.
+
+\subsubsection{Opening a File for Writing}
+Similar to reading, writing begins with opening the file:
+
+\begin{example}[Opening a file for writing]
+\texttt{open("/cs202/w07", O\_WRONLY)}
+\end{example}
+
+This assumes the file already exists. If it doesn't, additional operations would be required to create it.
+
+\subsubsection{Writing Data}
+Each logical write operation can generate multiple physical I/O operations:
+
+\begin{enumerate}
+    \item Read the free data block bitmap to locate available space
+    \item Write to the data block bitmap to mark the block as allocated
+    \item Read the file's inode to access its metadata
+    \item Write to the file's inode to update its block pointers
+    \item Write the actual data to the newly allocated block
+\end{enumerate}
+
+\subsubsection{File Creation and Additional Complexity}
+Creating a new file involves even more operations:
+\begin{itemize}
+    \item Reading and writing the free inode bitmap to allocate an inode
+    \item Writing the new inode with initial metadata
+    \item Reading and updating the parent directory's data blocks
+    \item If the parent directory is full, allocating new blocks for it
+\end{itemize}
+\newpage
+\begin{example}[Creating and Writing to a New File "/cs202/w07"]
+\leavevmode
+\upshape
+Now, let's look at the complete sequence of operations required to create a new file and write its first data block.
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{chapters/L7/images/write.png}
+\end{center}
+\textbf{Step 1: Creating the File}
+\begin{enumerate}
+    \item \textbf{Root inode access:} Reads the root directory's inode to locate its data blocks.
+    
+    \item \textbf{Root directory data:} Reads the root directory's data to find the entry for "cs202".
+    
+    \item \textbf{cs202 inode access:} Reads the inode for the "cs202" directory.
+    
+    \item \textbf{cs202 directory data:} Reads "cs202" directory data to verify "w07" doesn't already exist.
+    
+    \item \textbf{Inode bitmap operations:} Reads the inode bitmap to find a free inode, then writes to mark it as allocated.
+    
+    \item \textbf{Directory update:} Updates the "cs202" directory data to include an entry for "w07" linked to the new inode.
+    
+    \item \textbf{New inode initialization:} Writes initial metadata to the new inode (permissions, owner, timestamps).
+    
+    \item \textbf{Parent directory update:} Updates the metadata for "cs202" (modification time, entry count).
+\end{enumerate}
+
+\textbf{Step 2: Writing Data to the New File}
+\begin{enumerate}
+    \item \textbf{w07 inode access:} Reads the new file's inode to access its metadata.
+    
+    \item \textbf{Data bitmap operations:} Reads the data bitmap to find a free data block, then writes to mark it as allocated.
+    
+    \item \textbf{Data write:} Writes the actual file content to the newly allocated data block.
+    
+    \item \textbf{Inode update:} Updates the "w07" inode with the new file size, data block pointers, and timestamps.
+\end{enumerate}
+\end{example}
+\newpage
+\section{File System Performance}
+
+File system performance is a critical aspect of operating system design that directly impacts user experience and application efficiency. This section explores how performance is defined, measured, and optimized in file systems.
+
+\subsection{Performance Metrics and Evaluation}
+
+Performance in file systems can be evaluated from multiple perspectives, each focusing on different aspects of system behavior:
+
+\begin{definition}[File System Performance]
+The measure of how efficiently a file system can execute operations such as reading, writing, and metadata manipulation, typically expressed in terms of latency, throughput, and resource utilization.
+\end{definition}
+
+When evaluating file system performance, several factors must be considered:
+
+\begin{itemize}
+  \item \textbf{Operation count:} The number of I/O operations required to complete a task
+  \item \textbf{Operation speed:} The time required to complete individual I/O operations
+  \item \textbf{Program-level impact:} Effect on the performance of a single program
+  \item \textbf{System-level impact:} Effect on overall system performance across all programs
+\end{itemize}
+
+These factors can be quantified using the following key metrics:
+
+\begin{itemize}
+  \item \textbf{Latency:} The time delay between initiating and completing an operation
+  \item \textbf{Throughput:} The amount of data processed per unit time (e.g., MB/s)
+  \item \textbf{IOPS (I/O Operations Per Second):} The number of read/write operations a storage system can perform in one second
+\end{itemize}
+
+\subsection{Performance Optimization Strategies}
+
+File systems employ various strategies to optimize performance, each addressing different performance bottlenecks:
+
+\begin{definition}[Block Cache]
+A memory area that temporarily stores recently accessed disk blocks to reduce the need for physical disk operations when the same data is requested again.
+\end{definition}
+
+Caching significantly improves performance by reducing the need for slow disk operations:
+\begin{itemize}
+  \item[-] Frequently accessed blocks remain in memory, allowing \texttt{read()} operations to complete without disk I/O
+  \item[-] Modern systems often dedicate all unused memory to the file system buffer cache
+  \item[-] The cache maps file identifiers (inode, block offset) to physical memory locations (page frame numbers)
+\end{itemize}
+
+\subsubsection{Operation Batching}
+Grouping multiple operations together can significantly improve overall system throughput:
+
+\begin{example}[Write Batching]
+Instead of writing data to disk immediately after each user interaction, an application can queue multiple write operations for 5 seconds and then perform them as a batch. This reduces the total number of disk accesses, improving throughput at the cost of slightly increased latency for individual operations.
+\end{example}
+
+The benefits of operation batching include:
+\begin{itemize}
+  \item[-] Reduced disk seek time by grouping operations on physically proximate disk sectors
+  \item[-] Amortized per-operation overhead across multiple operations
+  \item[-] Opportunity for operation optimization and reordering
+\end{itemize}
+
+\subsubsection{Delayed Idempotent Operations}
+
+\begin{definition}[Idempotent Operation]
+An operation that can be performed multiple times without changing the final outcome beyond the initial application.
+\end{definition}
+
+Delaying or batching idempotent operations provides performance benefits without compromising correctness:
+
+\begin{example}[Timestamp Updates]
+Updating a file's "last accessed" timestamp can be delayed or batched because only the most recent timestamp is relevant. Multiple updates within a short time window can be coalesced into a single disk write.
+\end{example}
+
+\subsubsection{Strategic Indirection}
+
+Adding levels of indirection enables optimization opportunities:
+\begin{itemize}
+  \item Maintaining abstractions that decouple logical operations from physical ones
+  \item Allowing the system to reorder or coalesce operations
+  \item Providing flexibility in how and when operations are physically executed
+\end{itemize}
+\newpage
+\subsection{The Block Cache Architecture}
+The block cache serves as a critical performance optimization layer in file systems\\[5px]
+
+\begin{example}[Block Cache Operation]
+\leavevmode
+\upshape
+\noindent When an application repeatedly reads the same inode block\\[9px]
+\begin{minipage}{0.45\textwidth}
+\begin{enumerate}
+  \item \textbf{First read:} The block is loaded from disk into the block cache
+  \item \textbf{Subsequent reads:} The system checks if the block is in the cache using the mapping:
+  $\{inode, block\_offset\} \rightarrow page\_frame\_number$
+  \item If found, the data is returned directly from memory without disk I/O
+  \item The block remains in cache until memory pressure forces eviction
+\end{enumerate}
+\end{minipage}
+\hfill
+\vline
+\hfill
+\begin{minipage}{0.45\textwidth}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{chapters/L7/images/layers.png}
+  \end{center}
+\end{minipage}
+\end{example}
+\newpage
+\subsubsection{Key Block Cache Characteristics}
+\begin{itemize}
+  \item[-] Dynamically adjusts size based on system memory availability
+  \item[-] Implements replacement policies to maximize cache hit rates
+  \item[-] Manages consistency between cached blocks and their disk versions
+  \item[-] May implement read-ahead or prefetching to anticipate future access patterns
+\end{itemize}
+
+These performance optimization strategies collectively ensure that file systems can deliver high throughput and low latency despite the inherent performance limitations of physical storage devices.
+
+\subsection{Batching Operations}
+Each I/O operation is costly (latency), with limited concurrency (IOPS)
+
+Idea: Perform fewer operations with larger transfers
+
+HDD: when consecutive blocks on disk belong to the same inode
+Notion of “disk fragmentation” : a metric of what fraction of inode content are not on consecutive locations on disk
+
+SDD: Can further exploit underlying hardware parallelism
+
+\subsection{Delaying Operations}
+A process must block on a read operation.  But what about a write?
+
+Idea: Delay all write operations
+Perform them asynchronously (typical: wait at most 30 seconds)
+Reorder operations to maximize throughput 
+Consequence: content will be lost if the OS crashes
+\subsection{Block cache does affect data persistence}
+File systems maintain many data structures
+Bitmap of free blocks and inodes 
+Directories
+Inodes
+Data blocks
+Data structure are cached for performance:
+Works great for read operations …
+… But what about writes?
+
+\subsection{Writes are mostly affected due to caching}
+Different caching policies possible
+Write-back caches
+Delay writes: Higher performance at the cost of potential inconsistency
+Write-through caches
+Write synchronously but poor performance (fsync)
+
+
+
+\end{document}
