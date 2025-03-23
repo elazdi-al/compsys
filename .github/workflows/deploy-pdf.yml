@@ -1,44 +1,29 @@
 name: Deploy PDF
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set up LaTeX environment
-        run: sudo apt-get update && sudo apt-get install -y texlive-full
-
-      - name: Build
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: compsys.tex
-          args: -shell-escape -interaction=nonstopmode
-          # latexmk_use_xelatex: false
-          # latexmk_shell_escape: true
-          # This ensures multiple compilation passes for TOC generation
-          # compile_method: latexmk
-
-      - name: Copy
+        
+      - name: Setup output directory
         run: |
-          mkdir out
+          mkdir -p out
           cp ./compsys.pdf ./out/compsys.pdf
           cp ./index.html ./out/index.html
-
+        
       - uses: actions/upload-artifact@v4
         with:
           name: compsys-pdf
           path: out/compsys.pdf
-
+          
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.7
         with:
