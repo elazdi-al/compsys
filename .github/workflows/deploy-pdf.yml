@@ -14,19 +14,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Build
         uses: xu-cheng/latex-action@v3
         with:
           root_file: compsys.tex
+          args: -shell-escape -interaction=nonstopmode
+          latexmk_use_xelatex: false
+          latexmk_shell_escape: true
+          # This ensures multiple compilation passes for TOC generation
+          compile_method: latexmk
+
       - name: Copy
         run: |
           mkdir out
           cp ./compsys.pdf ./out/compsys.pdf
           cp ./index.html ./out/index.html
+
       - uses: actions/upload-artifact@v4
         with:
           name: compsys-pdf
           path: out/compsys.pdf
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.7
         with:
