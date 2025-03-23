@@ -20,10 +20,10 @@ jobs:
         with:
           root_file: compsys.tex
           args: -shell-escape -interaction=nonstopmode
-          latexmk_use_xelatex: false
-          latexmk_shell_escape: true
+          # latexmk_use_xelatex: false
+          # latexmk_shell_escape: true
           # This ensures multiple compilation passes for TOC generation
-          compile_method: latexmk
+          # compile_method: latexmk
 
       - name: Copy
         run: |
