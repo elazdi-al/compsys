@@ -1,0 +1,665 @@
+4
+client
+server
+a process
+a process
+responds to requests 
+generates requests
+There are different ways to structure a distributed application.
+
+The most common way is to have:
+a client;
+and a server.
+
+The client is a process that generates requests for service.
+The server is a process responds to these requests. 
+
+A distributed application that is structured this way is called a *client/server architecture*.
+
+Parenthesis: People often use the terms “client” and “server” to refer not only to a client or server process, but to an entire computer that is running client or server processes.
+
+In the old days, when somebody deployed a client/server application,
+they typically set up one or two computers,
+each of them running one server process.
+
+These days, when somebody deploys a client/server application,
+they typically set up multiple data-centers of multi-core computers,
+each one running multiple server processes. 
+
+
+5
+The client/server architecture
+Clear separation of roles
+client processes make requests
+server processes respond 
+Servers typically run on dedicated infrastructure
+used to be one or two computers
+now it is often a set of data-centers
+
+
+
+
+6
+client
+server
+local process ID
+local process ID
+75698
+34
+75698
+Consider a client process and a server process that need to communicate, exchange messages. 
+To do so, they need to be able to identify, name one another.
+E.g., when the client process sends a request for service, it needs to say to which server process it is sending this request.
+
+We know that each process has its local process ID (PID).
+E.g., the client process might have PID 75698,
+while the server process might have PID 34.
+
+→ Can they identify one another with these PIDs?
+No, because these PIDs are *local* identifiers, local names. 
+It could even be that the server process *also* has PID 75698 – you never know.
+
+7
+client
+server
+global process name
+188.60.20.151
+172.67.2.106
+: 443
+: 57050
+global process name
+IP address:
+port number
+Identifies the computer (*)
+Identifies the process within the computer
+Hence, each process also has a *global* identifier, a global name.
+
+This name consists of:
+a part that looks like this – 4 integers connected by dots;
+and an integer.
+
+The first part is called an *IP address*.
+The second part is called a *port number*.
+
+The IP address uniquely identifies a computer.
+The port number uniquely identifies a process running on this computer.
+
+I have an asterisk there, because, an IP address does not exactly identify a computer.
+I am being inaccurate on purpose; we will correct this inaccuracy later, when we have the necessary knowledge.
+
+You can think of the IP address as the street name, and the port number as the house number;
+the way a street name + a house number uniquely identify a house,
+an IP address + a port number uniquely identify a process.
+
+Parenthesis: In systems, "identifier" and "name" mean the same thing.We use one (e.g., local process ID) or the other (e.g., global process name) out of convention or habit.
+
+8
+Global process name
+IP address: identifies the computer
+e.g., 172.67.2.106
+// street name 
+Port number: identifies the process within
+e.g., 57057, 443 
+// house number
+
+
+
+
+9
+client
+server
+global process name
+172.67.2.106
+: 443
+: 57050
+global process name
+188.60.20.151
+from: 188.60.20.151: 57050
+to: 172.67.2.106: 443
+"Video… please!"
+In order for the client process to initiate communication with the server process, the client needs to know the server's name.
+
+Because when the client sends its first message to the server over the Internet,
+it needs to "tell the Internet" whom this message is addressed to.
+
+More specifically, the client attaches a piece of metadata to its message,which says that this message is addressed to process so and so.
+
+The server does *not* need to know the client's name in advance;
+the client introduces itself when it initiates communication.
+
+More specifically, the client attaches a piece of metadata to its message,
+which says that this message is coming from process so and so.
+
+It's like you wanting to send me a request.
+You need to know my email address.
+I don't need to know yours in order to respond, because I can learn your email address from your request.
+
+Which means that, somehow, the global name of the server process must be *discoverable*.
+There must be some way for the client process to figure out the name of the server process.
+
+
+10
+Server process names are discoverable
+To initiate communication,the client process must first discover the global name of the server process. 
+The client process introduces itself to the server process.
+
+
+
+
+11
+client
+server
+global process name
+172.67.2.106
+: 443
+: 57050
+global process name
+188.60.20.151
+"Video… please!"
+"Here it is…"
+Once the client process has discovered the name of the server process,
+they can start communicating.
+
+The messages that the client and server may exchange are specified by the *communication protocol* that they follow.
+
+E.g., a communication protocol may say that there are two legitimate exchanges:
+The client requests a piece of information.
+The server gives it to the client.
+
+Or:
+
+12
+client
+server
+global process name
+172.67.2.106
+: 443
+: 57050
+global process name
+188.60.20.151
+"Video… please!"
+"I don't have it."
+The client requests a piece of information.
+The server says that it doesn't have it.
+
+If either the client or the server does something outside this protocol – outside this specification – it is violating the protocol, and the other process will not respond or will terminate the communication. 
+
+
+
+13
+client
+server
+global process name
+172.67.2.106
+: 443
+: 57050
+global process name
+188.60.20.151
+"Video… please!"
+"Video… please!"
+"Video… please!"
+"Video… please!"
+E.g., suppose the client asks for a video, but instead of waiting for the response, it asks again, and again, and again…
+
+It is violating the communication protocol, and the server will not respond.
+
+In this sense, computer communication protocols are like human communication protocols:
+When I say hello to you, you expect me to wait for you to say hello back.
+If, instead, I start asking you for one thing after another, you will conclude that I am rude, and you will not communicate with me.
+
+14
+A communication protocol
+Specifies all the legitimate interactions between the communicating processes.
+If a process sends an illegitimate message, the other process may not respond or may terminate the communication.
+
+
+
+
+15
+Designing an application
+Deciding how many processes (and threads) and the role of each one.
+Designing the communication protocol between the participating processes (and threads).
+When you sit down to develop a distributed application, the first thing you do is:
+decide how many processes (and threads) your application will have and what each one will do, at a high level;
+design the communication protocol between the involved processes.
+
+It is super important to do that before you start writing code!
+
+
+
+16
+web client
+web server
+a process
+a process
+responds
+generates requests for web objects
+/browser
+The most universal client/server application is the web.
+It consists of:
+Web client processes that generate requests for web objects.
+Web server processes that respond to these requests.
+
+Web client is another word for web browser.
+
+17
+web client
+web server
+a process
+a process
+responds
+generates requests for web objects
+/browser
+GET www.epfl.ch
+200 OK Data: ……………………………….
+The communication protocol between a web client and a web server is called HyperText Transfer Protocol (HTTP), and it consists of simple request/response exchanges.
+
+The most common request type is a GET request…
+
+The web server may respond with response code 200, which means "OK, here is the web object you requested."
+
+18
+web client
+web server
+a process
+a process
+responds
+generates requests for web objects
+/browser
+GET www.epfl.ch/index.html
+404 Not found
+Or, the web server may respond with error code 404, which means "I don't have this web object."
+
+
+
+19
+web client
+web server
+a process
+a process
+responds
+generates requests for web objects
+/browser
+GET hsjak&&ˆ&
+400 Bad request
+Or, the web server may respond with response code 400, which means "This is a malformed request, I cannot make sense of it."
+
+You have most likely never observed such a response.
+→ Why is that?
+
+Because it is not you, the human user, that generates the web requests.
+You type something in the top window of your web browser.
+It is your web browser, under the covers, that generates web requests,
+and it is rare that a web browser will generate a malformed request.
+
+However, the HTTP protocol does account for that possibility.
+
+20
+web client
+web server
+a process
+a process
+responds
+generates requests for web objects
+/browser
+GET www.ethz.ch/tero
+301 Moved permanentlyLocation: www.epfl.ch/tero
+It is also possible that the web server responds with response code 301, which means "The web object you are requesting has moved permanently to a different location." In this case, the web server also provides the location.
+
+21
+The HyperText Transfer Procotol (HTTP)
+The web client sends an HTTP request; the web server sends an HTTP response
+Common requests: GET,  HEAD, POST…
+Common responses: OK, Not found, Bad request, Moved permanently…
+Other common types of web requests:
+HEAD: If the web client sends "HEAD <web object name>", the web server responds by sending all the metadata related to this web object, but not the actual data (so, not the object itself). E.g., it sends the length of the object (which is part of the metadata). 
+POST: The web client uses this request type to pass information to the web server. E.g., every time you fill in an online form and you click the "Submit" button, your web client uses a POST request to send the information you submitted to the web server.
+
+
+22
+Web object
+Can be a text file, image, video, script…
+Has its own Uniform Resource Locator (URL)
+e.g., https://actu.epfl.ch/image/142932/1920x1080.jpg
+globally unique identifier/name/address
+A web client can retrieve it from a web server via a web request
+e.g., "GET actu.epfl.ch/image/142932/1920x1080.jpg"
+
+23
+Web page
+A particular type of web object
+Consists of a base file + referenced objects 
+base file specifies structure
+referenced objects may be images, videos, scripts, other web pages…   
+
+24
+This is the main EPFL web page,  as I viewed it yesterday.
+24
+
+25
+Every web browser allows you to "view the source" of the web page it is displaying.
+E.g., in Firefox, you can do it through the Tools menu…
+
+When I clicked on "Page Source"...
+25
+
+26
+… I got this.
+
+This is the base file for EPFL’s main web page. 
+It contains a list of URLs, each one naming a referenced file.
+
+It does not contain the content of the referenced files (the actual images or videos); but it identifies each one of them, and it specifies approximately where each one of them should be displayed.
+
+
+26
+
+27
+And if I click on one of these URLs…
+
+
+27
+
+28
+… I get this.
+
+This is one of the little pictures that appear within the EPFL main page.
+
+So, each referenced file has a URL, and it is itself a web object that a web client may request from a web server.
+28
+
+29
+web client
+web server
+GET www.epfl.ch
+
+30
+web client
+web server
+GET <base file URL>
+200 OK <base file contents>
+GET <ref. file URL>
+GET <ref. file URL>
+200 OK <ref. file contents>
+GET <ref. file URL>
+200 OK <ref. file contents>
+200 OK <ref. file contents>
+The most common web client/server exchange is this:
+The human user types a URL into their web client.
+The web client creates a GET request for this URL, which names the base file of a web page.
+The web server creates a 200 OK response that contains the content of the base file.
+The web client reads the base file, identifies all the URLs that it needs in order to present this web page to the human user, and creates a GET request for each one.
+So, when you visit a web page, under the covers, your web client sends multiple GET requests to the corresponding web server and receives and processes multiple responses.
+
+
+
+
+31
+A stateless protocol
+The server process does not maintain any state about the client process
+State = information from past exchanges
+In principle, HTTP is stateless: a web server does not main state about web clients
+I would like us to discuss the concepts of a "stateless protocol" versus a "stateful protocol."
+
+In a stateless client/server protocol, the server process does not maintain state about the client process.
+By "state" I mean information about past exchanges.
+
+E.g., our communication is stateful, because when we come to class we remember what we discussed during the last lecture – we don't start from scratch every time.
+
+But my interaction with the medical system is often stateless. I go to the same hospital I went a week ago, with the same problem, a new doctor shows up and asks me "What is the problem? Tell me the story from the beginning…"
+
+In principle, HTTP is a stateless protocol: a web server does not maintain state about web clients.
+
+→ Then how does Facebook or Amazon know who you are whenever you return to the Facebook or Amazon home page? You must have noticed that they know who you are even before you login. How do they do they do that if their web servers are not keeping any state on the web clients that communicate with them?
+
+32
+web client
+web server
+GET news.com/greece
+200 OK <greek news>cookie: news.com, Greece
+stored cookies
+GET news.com/recipescookie: Greece
+200 OK <greek recipes>
+news.com, Greece
+The answer is *cookies*.
+I will illustrate what cookies are and how they work by example:
+
+Suppose I open my web client and I type in “news.com/greece.html,” which is a valid URL. 
+Under the covers, my web client generates a GET request for this URL. 
+The web server receives the request and generates an OK response that contains the base file of this URL. 
+But, the web server also infers somethings about mme: I am interested in Greece. 
+So, it adds a *cookie* to its response. 
+This is a piece of metadata, which contains inferred information about the web client and/or its user.
+The web client stores the cookie in its cookie store.
+
+The next time my web client makes a GET request for a URL that belongs to the news.com domain, it adds this cookie to the request.
+When the web server receives the request, it reads the cookie, and it knows that I am interested in Greece, so it can adapt its response, e.g., show me greek recipes.
+
+33
+web client
+web server
+GET news.com/greece
+200 OK <greek news>cookie: news.com, Greece
+stored cookies
+GET news.com/recipescookie: Greece
+200 OK <greek recipes>cookie: news.com, cooking
+news.com, Greece
+news.com, cooking
+Moreover, the web server may infer a new thing about me: that I am interested in cooking.
+So, it may add a new cookie to its response, which includes the new inferred information.
+
+The web server that hosts news.com can little by little build a profile about me, which is stored in my own web client in the form of cookies, and shared with the web server every time I access a URL from the news.com domain. 
+
+
+
+34
+Cookie
+State created by the web server, stored on the web client
+It links subsequent web requests to the same web client
+
+
+
+35
+Passing the state to the client
+A server process computes information about a client process
+Gives it to the client to store, instead of storing it locally
+Reduces server memory/storage requirements,reduces server complexity
+Cookies are an example of a systems "trick," which is called "passing the state to the client."
+
+When I lived in Greece, when someone went to a club, they paid to enter, but they were not given any ticket. If they wanted to go out for a smoke, the person at the entrance of the club put a stamp on the client's forearm. When the client returned to the club, they showed their forearm, and the person at the entrance knew that this was a returning client, who had already paid.
+
+The person at the entrance "passed the state to the client."Instead of keeping themselves a list of who went out, and checking their ID on their way in, they simply made the client carry themselves the relevant information.As a result, the person at the entrance did not need to maintain any state, and also their job was simpler.
+
+So, passing the state to the client reduces server storage requirements and reduces server complexity.
+
+36
+web client
+web server
+GET news.com/greece
+200 OK <greek news>cookie: news.com, Greece
+stored cookies
+GET news.com/recipescookie: Greece
+200 OK <greek recipes>cookie: cooking.com, Greece
+news.com, Greece
+cooking.com, Greece
+So far, we saw an example where the web server that hosts news.com sends to a web client a cookie to be used whenever the web client visits news.com web pages.
+
+It is also possible for a web server to send a "third-party cookie,"i.e., a cookie to be used whenever the web client visits a *different* web server.
+
+E.g., suppose my web client visits news.com, and the news.com web server sends back a cookie that is meant for the cooking.com web server.
+
+
+
+37
+web client
+web server
+GET cooking.com
+stored cookies
+news.com, Greece
+cooking.com, Greece
+another
+The first time my web client sends a request to the cooking.com web server…
+
+
+38
+web client
+web server
+200 OK <greek recipes>
+stored cookies
+news.com, Greece
+cooking.com, Greece
+GET cooking.comcookie: Greece
+another
+… it adds the cookie to its request.
+
+As a result, the cooking.com web server learns that I am interested in Greece,even though it is the very first time that my web client is communicating with this web server.
+
+39
+Third-party Cookie
+Cookie created by one web server, to be used by another web server
+The web client passes information about itself from one web server to another
+
+40
+Cookie-less tracking!
+The web server sends no cookies
+No cookies = privacy-preserving tracking
+Seriously?
+If you google around for "cookies," you will encounter the term "cookie-less tracking."
+
+This is a mode of operation where web servers do not send cookies to web clients,
+they collect information about web clients in different ways…
+
+You may also encounter the argument that cookie-less tracking is more privacy-preserving or privacy-friendly, because it does not rely on cookies…
+
+→ Does this argument make sense?
+No! Cookies are a mechanism for web servers to profile web clients/users. What's important is not the mechanism but the actual information it collects. Cookie-less *tracking* is still *tracking* – it just uses different mechanisms. It may be privacy-preserving or not, depending on what information it collects.
+
+
+41
+web client 
+web server
+EPFL
+Consider the following scenario:
+
+We have a web client communicating with a web server that is far far away. 
+
+It takes *long* for the client’s GET requests to reach the server; and for the server’s OK responses to reach the client. 
+
+Is there anything that can be done to reduce this delay?
+
+Yes, if there are other web clients somewhere near the first web client, who are also interested in the same URLs. 
+
+→ What can we do in this scenario?
+We can use a…
+
+
+42
+web client 
+(origin) 
+proxy web server
+EPFL
+web server
+… *proxy web server* or *web cache*. 
+The proxy web server is a normal web server; but it can also act as as intermediate between web clients and other web servers, and it can cache the content of URLs.
+I will illustrate through an example:
+Suppose the first web client wants www.epfl.ch, but it does not send a GET request to the EPFL web server (because it’s far).Instead, the web client sends a GET request for this URL to a nearby proxy web server.
+The proxy web server receives the request and checks whether it has recently cached the content of www.epfl.ch. It has not, so, it sends a GET request for the same URL to the EPFL web server. The EPFL web server sends back an HTTP OK response.The proxy web server caches the content of www.epfl.ch, and it also sends an OK response (with the content) to the web client.
+This web client has not accomplished anything; actually, it may have taken longer to get www.epfl.ch this way.
+But, when the *second* web client sends a GET request for www.epfl.ch to the proxy web server, the proxy web server has recently cached the content of this URL, so it can respond to the web client *immediately*, without contacting the origin web server.
+The same is true about the other web clients.
+
+
+Web caching
+Proxy web server or web cache
+caches content hosted by other web servers
+acts as a web server to nearby web clients
+Reduces the delay experienced by web clients
+Reduces the load on the origin web server
+43
+43
+
+44
+web client 
+(origin) 
+proxy web server
+EPFL
+web server
+→ What is the challenge with this?Stale (not fresh) data.
+It is possible that the proxy web server has cached an old version of www.epfl.ch, so, the web clients receive this old version.
+→ How can we prevent this?
+One technique is for the EPFL web server to associate an *expiration time*, or a *maximum caching age* with this URL; and add this information to any response related to this URL. 
+When the proxy web server checks whether it has cached the content of www.epfl.ch, it also checks whether the expiration time has been reached; or the content of this URL has been cached for more than the maximum caching age. 
+Suppose that the content has been cached for more than the maximum caching age. So, it makes sense for the proxy web server to send a new GET request for this URL to the EPFL web server.However, it is not *certain* that the content of this URL has actually changed. 
+→ What is the smart thing for the proxy web server to ask from the EPFL web server?
+ “Send me the content of www.epfl.ch only if has changed since I cached it.”
+We call this a *conditional HTTP GET request*.
+
+
+45
+web client 
+(origin) 
+proxy web server
+EPFL
+web server
+GET www.epfl.ch
+GET www.epfl.chif-modified-since <date,time>
+200 OK
+200 OKdata: ………………..
+Here is how it works, from the beginning:
+The web client sends a GET request for a URL to the proxy web server. 
+Suppose the maximum caching age for this URL is 1 hour; and the proxy web server cached the content of this URL 2 hours ago. 
+So, the proxy web server asks the origin web server to send the content of the URL *but only if it has been modified in the last two hours*.
+To do that, the proxy web server uses a special field in the HTTP header that is called “If-modified-since”. 
+If the content of the URL has not been modified, the origin web server *still* sends [click] an OK response, but it does *not* include the content of the URL.
+So, the proxy web server sends to the web client an OK response that contains the cached content.
+Now, *everything* that I have said about the proxy web server is true for the web *client* as well. The web *client* may cache URL content and rely on the expiration date or max caching age to decide when to request it again. The web *client* may make conditional GET requests. 
+
+
+
+How to ensure fresh data
+An origin web server may assign an expiration date or max caching age to each URL
+A web client or proxy web server may send a conditional GET request for a URL
+using the if-modified-since field in the HTTP header
+46
+46
+
+47
+web client 
+(origin) 
+proxy web server
+EPFL
+web server
+→ Does a conditional GET request significantly reduce the delay experienced by the web client?
+Not necessarily! 
+If the requested web object is small, then a conditional GET request does not make a big difference, because the proxy web server needs to contact the origin web server anyway to ask if the object has changed…
+However, if the requested web object is big, then a conditional GET request may actually make a big difference, because the proxy web server at least does not have to wait to receive the actual object from the origin web server.
+We will revisit this issue of performance improvement thanks to caching in three lectures.
+
+Caching
+Universal technique for improving performance
+Challenge: ensure fresh data
+Solution: expiration date or max caching age + dynamic check
+the latter may or may not help… 
+48
+Caching is a universal technique for improving performance.
+
+Whenever we have a set of entities interested in the same data,
+the moment one of these entities pays the cost to bring the data closer,
+it is worth caching the data closer -- so that the other entities do not have to pay the same cost.
+
+The challenge is ensuring that the cached data is fresh, meaning that it has not changed since it was cached.
+
+One solution is to rely on expiration date/max caching age, plus a dynamic freshness check.
+The latter may or may not help, depending on the nature of the data and communication path.
+
+48
+
+The web
+Processes: client + server
+Protocol: HTTP (requests + responses)
+In principle stateless… but cookies store state in the client
+Caching for reducing client latency + server load
+49
+49
+
+\end{document}
