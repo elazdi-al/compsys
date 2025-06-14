@@ -1,0 +1,597 @@
+\documentclass[../../compsys.tex]{subfiles}
+\begin{document}
+\raggedbottom
+\chapter{Special Topic 1 — Parallelism \& Concurrency}
+\vfill
+\textit{This Lecture felt pretty clear, didn't add too much to it, the video is also very interesting, I would recommend watching it (if you have time).}
+\raggedbottom
+\section{Introduction}
+\textit{Understanding the fundamental concepts of parallelism and concurrency through practical examples.}
+
+Modern computing systems must efficiently utilize multiple resources to achieve optimal performance. This chapter explores two fundamental concepts that enable efficient resource utilization: \textbf{parallelism} and \textbf{concurrency}. We begin with an intuitive analogy to illustrate these concepts before diving into their technical implementations.
+\newpage
+\subsection{The Cooking Analogy}
+\textit{Consider preparing chicken fettuccine alfredo using different approaches to understand execution strategies.}
+
+To understand the difference between sequential, concurrent, and parallel execution, consider preparing a meal with the following tasks:
+\begin{enumerate}
+  \item Boil water, cook pasta until al dente (15 minutes)
+  \item Dice chicken and mushrooms (5 minutes)
+  \item Fry chicken and mushrooms (10 minutes)
+  \item Make the sauce (10 minutes)
+  \item Put it all together (5 minutes)
+\end{enumerate}
+
+\subsubsection{Sequential Execution}
+\textit{Performing tasks one after another using a single resource.}
+
+In sequential execution, one person performs all tasks in order:
+\begin{itemize}
+  \item[-] Total time: 45 minutes
+  \item[-] Each task must complete before the next begins
+  \item[-] Simple but inefficient use of time and resources
+\end{itemize}
+
+\subsubsection{Concurrent Execution}
+\textit{Overlapping tasks in time using intelligent scheduling.}
+
+A single person can optimize the process by overlapping tasks:
+\begin{enumerate}
+  \item Start boiling water (2 minutes)
+  \item While water heats, dice chicken and mushrooms (5 minutes)
+  \item Add pasta to boiling water (13 minutes remaining)
+  \item While pasta cooks, fry chicken and mushrooms (10 minutes)
+  \item Make the sauce (10 minutes)
+  \item Put it all together (5 minutes)
+\end{enumerate}
+
+Total time: 27 minutes — a 40\% improvement through intelligent task scheduling.
+
+\subsubsection{Concurrent and Parallel Execution}
+\textit{Combining task overlap with multiple resources working simultaneously.}
+
+Two people working together can achieve even better performance:
+\begin{itemize}
+  \item[-] Tasks are both overlapped in time AND performed simultaneously by different people
+  \item[-] Chicken and mushrooms diced by two people in parallel (2.5 minutes each)
+  \item[-] Other optimizations through coordination
+  \item[-] Total time: 19.5 minutes — a 57\% improvement over sequential execution
+\end{itemize}
+
+\section{Fundamental Definitions}
+\textit{Precise definitions of concurrency and parallelism in computing contexts.}
+
+\subsection{Concurrency}
+\textbf{Concurrency} occurs when multiple tasks execute in an overlapping time period (but not necessarily simultaneously) such that at least one task begins before another task finishes.
+
+\paragraph{Computing Implementation.} A single CPU achieves concurrency by rapidly switching between threads (time slicing). The CPU switches between tasks so quickly that it creates the illusion of simultaneous execution while allowing application execution to overlap with blocking system calls (disk I/O or network I/O).
+
+\subsection{Parallelism}
+\textbf{Parallelism} focuses on performing multiple tasks or several parts of a single task simultaneously by using multiple processing units.
+
+\paragraph{Computing Implementation.} Multiple CPUs execute different tasks at the same time, truly parallelizing the process across multiple processing units.
+
+\section{Motivation for Concurrent and Parallel Computing}
+\textit{Understanding why these concepts are essential for modern computing systems.}
+
+\subsection{Performance Benefits}
+From the user perspective, concurrency and parallelism provide:
+\begin{itemize}
+  \item[-] \textbf{Increased throughput} — more operations per second
+  \item[-] \textbf{Reduced latency} — tasks complete faster
+\end{itemize}
+
+From the system perspective, they enable:
+\begin{itemize}
+  \item[-] \textbf{Efficient hardware resource management}
+  \item[-] \textbf{Utilization of multiple CPU cores}
+  \item[-] \textbf{Hiding the cost of I/O operations}
+\end{itemize}
+
+These concepts are fundamental to both applications and operating systems. Consider how a web browser and an IDE can run simultaneously on your computer — this is concurrency in action.
+\newpage
+\section{Concurrency Mechanisms}
+\textit{Exploring different approaches to achieving concurrent execution.}
+
+\subsection{Process-Level vs Thread-Level Concurrency}
+Different mechanisms exist for achieving concurrency between processes versus within a single process.
+
+\subsubsection{Process Limitations}
+While processes provide strong isolation guarantees, they are often too heavyweight for fine-grained concurrency:
+\begin{itemize}
+  \item[-] Processes don't share memory, requiring explicit communication
+  \item[-] Creating new processes has high overhead
+  \item[-] Context switching between processes is expensive due to memory and resource isolation requirements
+  \item[-] Limited scalability for applications requiring many concurrent tasks
+\end{itemize}
+
+This leads to the question: \textit{Could we have a lighter-weight abstraction?}
+
+\section{The Thread Abstraction}
+\textit{Understanding threads as the fundamental unit of concurrent execution.}
+
+\subsection{Thread Definition}
+A \textbf{thread} is the smallest unit of execution that can be scheduled by the operating system. At any moment, a CPU core executes exactly one thread. Processes can contain multiple threads that share certain resources while maintaining separate execution contexts.
+
+\subsection{Thread Characteristics}
+Within a single process, multiple threads share:
+\begin{itemize}
+  \item[-] \textbf{Address space} (heap, data, and text segments)
+  \item[-] \textbf{File descriptors}
+  \item[-] \textbf{Process-level resources}
+\end{itemize}
+
+Each thread maintains its own:
+\begin{itemize}
+  \item[-] \textbf{Stack} (local variables and function call history)
+  \item[-] \textbf{Program counter} (current instruction)
+  \item[-] \textbf{Register state}
+\end{itemize}
+
+Each thread is:
+\begin{itemize}
+  \item[-] \textbf{Independently scheduled} by the operating system
+  \item[-] \textbf{Capable of issuing system calls}
+\end{itemize}
+
+\subsection{Memory Layout Comparison}
+\textit{Visualizing the difference between single-threaded and multi-threaded address spaces.}
+
+\subsubsection{Single-Threaded Process}
+In a single-threaded process, the address space contains one stack:
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+Stack \\
+\hline
+Free Space \\
+\hline
+Heap \\
+\hline
+Data \\
+\hline
+Text \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Multi-Threaded Process}
+In a multi-threaded process, each thread has its own stack while sharing other segments:
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+Stack 2 \\
+\hline
+Free Space \\
+\hline
+Stack 1 \\
+\hline
+Free Space \\
+\hline
+Heap (Shared) \\
+\hline
+Data (Shared) \\
+\hline
+Text (Shared) \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Observations.}
+\begin{itemize}
+  \item[-] Each thread has its own stack segment for local variables
+  \item[-] Threads share the code (text segment)
+  \item[-] Threads share the heap for dynamic memory allocation
+  \item[-] Threads share global data
+\end{itemize}
+\newpage
+\section{Thread Management}
+\textit{Programming interfaces for creating and managing threads.}
+
+\subsection{POSIX Thread API}
+The POSIX threading library (pthread) provides standard functions for thread management:
+
+\subsubsection{Thread Creation}
+\begin{cc}
+pthread_create(&thread_id, &attributes, start_routine, arguments)
+\end{cc}
+
+This function creates a new thread that begins execution by calling \texttt{start\_routine(arguments)}.
+
+\subsubsection{Thread Synchronization}
+\begin{cc}
+pthread_join(&thread_id, &return_value)
+\end{cc}
+
+This function blocks the calling thread until the specified thread completes execution.
+
+\subsection{First Multithreaded Program}
+\textit{A practical example demonstrating thread creation and the challenges of shared memory.}
+
+Consider a program that increments a shared counter using two threads:
+
+\begin{cc}
+#include <stdio.h>
+#include <pthread.h>
+#define NUM_ITER 100000
+int counter = 0;  // Global variable shared among all threads
+
+void *incr(void *arg) {
+   printf("%s starts\n", (char *)arg);
+   for (int i = 0; i < NUM_ITER; i++)
+      counter = counter + 1;  // Critical: shared memory access
+   return NULL;
+}
+
+int main(int argc, char *argv[]) {
+   pthread_t t1, t2;
+   
+   // Create two threads
+   pthread_create(&t1, NULL, incr, "T1");
+   pthread_create(&t2, NULL, incr, "T2");
+   
+   // Wait for both threads to complete
+   pthread_join(t1, NULL);
+   pthread_join(t2, NULL);
+   
+   printf("Counter: %d (expected: %d)\n", counter, NUM_ITER*2);
+   return 0;
+}
+\end{cc}
+
+\paragraph{Expected vs Actual Results.}
+This program should increment the counter 200,000 times (100,000 per thread), but \textbf{each execution produces different, incorrect results}. This non-deterministic behavior reveals fundamental challenges in concurrent programming.
+
+\section{Concurrency Challenges}
+\textit{Understanding race conditions and their causes.}
+
+\subsection{The Race Condition Problem}
+\textit{Analyzing why simple operations become complex in concurrent environments.}
+
+The statement \texttt{counter = counter + 1} appears atomic at the source code level, but the processor actually executes multiple instructions:
+
+\begin{verbatim}
+mov    counter, %eax    # Load counter value into register
+add    $1, %eax         # Increment register value
+mov    %eax, counter    # Store register value back to memory
+\end{verbatim}
+
+\subsection{Thread Interleaving Analysis}
+\textit{Step-by-step examination of how thread scheduling affects program correctness.}
+
+Consider the following execution sequence where both threads attempt to increment the counter from an initial value of 50:
+
+\begin{center}
+\begin{tabular}{|l|l|c|c|}
+\hline
+\textbf{Thread 1} & \textbf{Thread 2} & \textbf{\%eax} & \textbf{counter} \\
+\hline
+\texttt{mov counter, \%eax} & & 50 & 50 \\
+\texttt{add \$1, \%eax} & & 51 & 50 \\
+\textbf{CONTEXT SWITCH} & & 51 & 50 \\
+& \texttt{mov counter, \%eax} & 50 & 50 \\
+& \texttt{add \$1, \%eax} & 51 & 50 \\
+& \texttt{mov \%eax, counter} & 51 & 51 \\
+\textbf{CONTEXT SWITCH} & & 51 & 51 \\
+\texttt{mov \%eax, counter} & & 51 & 51 \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Analysis.} Despite two increment operations, the counter increases by only 1 instead of 2. Thread 1's work is lost because Thread 2 overwrote the counter value before Thread 1 completed its read-modify-write sequence.
+
+\subsection{Race Conditions and Data Races}
+\textit{Formal definitions of concurrent programming hazards.}
+
+\begin{itemize}
+  \item[-] \textbf{Race condition}: The program's correctness depends on the relative timing or ordering of events
+  \item[-] \textbf{Data race}: One thread accesses a mutable variable while another thread writes to it without proper synchronization
+  \item[-] These conditions lead to non-deterministic behavior that varies between program executions
+  \item[-] Multi-core systems exacerbate these problems through true parallel execution
+\end{itemize}
+\newpage
+\section{Synchronization Mechanisms}
+\textit{Techniques for coordinating thread execution and ensuring program correctness.}
+
+\subsection{Atomic Operations}
+\textit{The fundamental requirement for correct concurrent programming.}
+
+To fix the counter increment problem, we need the three-instruction sequence to execute \textbf{atomically} — appearing as a single, indivisible operation from the perspective of all threads.
+
+\subsection{Critical Sections}
+\textit{Identifying and protecting shared resource access.}
+
+A \textbf{critical section} is a code block that accesses shared resources and must not be executed concurrently by multiple threads.
+
+To ensure program correctness, we must enforce:
+\begin{itemize}
+  \item[-] \textbf{Atomicity}: Execute critical sections as uninterruptible blocks
+  \item[-] \textbf{Mutual exclusion}: Only one thread can execute a critical section at any time
+\end{itemize}
+
+\subsection{Locks}
+\textit{The primary mechanism for implementing mutual exclusion.}
+
+\textbf{Locks} (also called mutexes) ensure atomicity through mutual exclusion:
+\begin{itemize}
+  \item[-] All threads competing for a critical section share a lock
+  \item[-] Only one thread can acquire the lock at a time (\textbf{lock holder})
+  \item[-] Other threads must wait until the lock is released (\textbf{lock waiters})
+\end{itemize}
+
+\subsubsection{Lock Usage Pattern}
+\begin{cc}
+lock_t mutex;           // Shared lock variable
+...
+lock(&mutex);           // Acquire exclusive access
+counter = counter + 1;  // Critical section
+unlock(&mutex);         // Release access
+\end{cc}
+\newpage
+\section{Lock Implementations}
+\textit{Different approaches to implementing mutual exclusion with their respective trade-offs.}
+
+\subsection{Interrupt-Based Locks}
+\textit{Using hardware interrupt control for mutual exclusion.}
+
+\subsubsection{Basic Approach}
+Disable interrupts during critical section execution:
+
+\begin{cc}
+void lock(lock_t *l) {
+    disable_interrupts();
+}
+
+void unlock(lock_t *l) {
+    enable_interrupts();
+}
+\end{cc}
+
+\subsubsection{Mechanism}
+\begin{itemize}
+  \item[-] Prevents hardware and timer interrupts
+  \item[-] Stops the scheduler from switching threads
+  \item[-] Code executes atomically between interrupt disable/enable
+\end{itemize}
+
+\subsubsection{Evaluation}
+\textbf{Advantages:}
+\begin{itemize}
+  \item[-] Simple implementation
+  \item[-] Effective for low-complexity code
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+  \item[-] Requires privileged operations (OS-level access)
+  \item[-] No support for multiple independent locks
+  \item[-] Only works on single-processor systems
+  \item[-] Vulnerable to abuse (programs can monopolize resources)
+  \item[-] Can cause hardware interrupt loss
+\end{itemize}
+\newpage
+\subsection{Software-Only Solutions}
+\textit{Attempting to implement locks using only memory operations.}
+
+\subsubsection{Naive Approach}
+Use a shared boolean variable to coordinate access:
+
+\begin{cc}
+bool lock_available = true;
+
+void lock(bool *l) {
+    while (!(*l));      // Wait until lock is available
+    *l = false;         // Claim the lock
+}
+
+void unlock(bool *l) {
+    *l = true;          // Release the lock
+}
+\end{cc}
+
+\subsubsection{Critical Flaw}
+This approach suffers from the same race condition it attempts to solve:
+\begin{enumerate}
+  \item Thread 1 checks lock status (available)
+  \item Thread 2 checks lock status (available) — \textit{context switch}
+  \item Thread 1 claims lock
+  \item Thread 2 claims lock — \textit{context switch}
+  \item Both threads enter critical section simultaneously
+\end{enumerate}
+
+\paragraph{Conclusion.} Pure software solutions cannot solve the mutual exclusion problem without hardware support.
+
+\subsection{Hardware-Supported Atomic Instructions}
+\textit{Leveraging processor capabilities for correct lock implementation.}
+
+\subsubsection{Test-and-Set Instruction}
+Modern processors provide atomic read-modify-write instructions. The \textbf{test-and-set} instruction atomically:
+\begin{enumerate}
+  \item Reads the current value from a memory location
+  \item Writes a new value to that location
+  \item Returns the original value
+\end{enumerate}
+
+\begin{cc}
+int test_and_set(int *ptr, int new_value) {
+   int old_value = *ptr;     // Read current value
+   *ptr = new_value;         // Write new value
+   return old_value;         // Return original value
+}
+\end{cc}
+
+\paragraph{Atomicity Guarantee.} The processor guarantees that these three operations execute as a single, uninterruptible instruction across all CPU cores.
+
+\subsubsection{Spinlock Implementation}
+Using test-and-set to implement a correct lock:
+
+\begin{cc}
+bool lock_taken = false;
+
+void lock(bool *l) {
+    while (test_and_set(l, true)) {
+        // Spin until we successfully acquire the lock
+        // (test_and_set returns false, meaning lock was available)
+    }
+}
+
+void unlock(bool *l) {
+    *l = false;
+}
+\end{cc}
+
+\subsubsection{Spinlock Evaluation}
+\textbf{Advantages:}
+\begin{itemize}
+  \item[-] Correctly implements mutual exclusion
+  \item[-] Works on multiprocessor systems
+  \item[-] No kernel involvement required
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+  \item[-] \textbf{Busy waiting}: Lock waiters consume CPU cycles continuously
+  \item[-] Poor performance when lock contention is high
+  \item[-] Can lead to priority inversion problems
+\end{itemize}
+
+\subsection{Blocking Locks (Mutexes)}
+\textit{Eliminating busy waiting through operating system cooperation.}
+
+\subsubsection{The Busy-Waiting Problem}
+Spinlocks waste CPU cycles when threads wait for locks. Instead of spinning, waiting threads should \textbf{yield the CPU} to other threads.
+
+\subsubsection{Mutex Approach}
+\textbf{Mutexes} (mutual exclusion locks) address busy waiting:
+\begin{itemize}
+  \item[-] Threads attempting to acquire a held lock go to sleep
+  \item[-] The operating system maintains a queue of waiting threads
+  \item[-] When a lock is released, the OS wakes up one or more waiting threads
+  \item[-] Threads only consume CPU time when they can make progress
+\end{itemize}
+
+\subsubsection{POSIX Mutex Implementation}
+\begin{cc}
+#include <pthread.h>
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void critical_section(int *counter) {
+    pthread_mutex_lock(&mutex);      // Block if lock is held
+    *counter += 1;                   // Critical section
+    pthread_mutex_unlock(&mutex);    // Wake up waiting threads
+}
+\end{cc}
+
+\paragraph{Mutex Semantics.}
+\begin{itemize}
+  \item[-] Threads block (sleep) when the lock is unavailable
+  \item[-] Integrates with other synchronization primitives
+  \item[-] Provides better overall system performance than spinlocks
+\end{itemize}
+\newpage
+\section{Complex Synchronization: The Dining Philosophers Problem}
+\textit{A classic problem illustrating the subtleties of concurrent programming.}
+
+Even with proper locking mechanisms, designing correct concurrent programs remains challenging. The dining philosophers problem demonstrates common pitfalls.
+
+\subsection{Problem Description}
+Five philosophers sit around a circular table with five forks. Each philosopher alternates between thinking and eating. To eat, a philosopher needs both adjacent forks (left and right). The challenge is to design a protocol that allows all philosophers to eat without deadlock or starvation.
+
+\subsection{Basic Program Structure}
+\begin{cc}
+void philosopher(int id) {
+    while (true) {
+        think(id);
+        take_forks(id);      // Acquire both forks
+        eat(id);
+        put_forks(id);       // Release both forks
+    }
+}
+
+int main() {
+    pthread_t philosophers[5];
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&philosophers[i], NULL, philosopher, i);
+    }
+    // Join all threads...
+}
+\end{cc}
+
+\subsection{Attempt 1: Unprotected Shared State}
+\begin{cc}
+bool fork_available[5] = {true, true, true, true, true};
+
+void take_forks(int id) {
+    int left = id;
+    int right = (id + 1) % 5;
+    
+    while (!fork_available[left] || !fork_available[right]) {
+        // Wait until both forks are available
+    }
+    fork_available[left] = false;   // Take left fork
+    fork_available[right] = false;  // Take right fork
+}
+\end{cc}
+
+\paragraph{Problem: Data Race.} Multiple philosophers can "take" the same fork simultaneously, violating the mutual exclusion requirement.
+\newpage
+\subsection{Attempt 2: Individual Fork Locks}
+\begin{cc}
+pthread_mutex_t fork_locks[5] = {PTHREAD_MUTEX_INITIALIZER};
+
+void take_forks(int id) {
+    int left = id;
+    int right = (id + 1) % 5;
+    
+    pthread_mutex_lock(&fork_locks[left]);   // Take left fork
+    pthread_mutex_lock(&fork_locks[right]);  // Take right fork
+}
+
+void put_forks(int id) {
+    int left = id;
+    int right = (id + 1) % 5;
+    
+    pthread_mutex_unlock(&fork_locks[left]);
+    pthread_mutex_unlock(&fork_locks[right]);
+}
+\end{cc}
+
+\paragraph{Problem: Deadlock.} If all philosophers simultaneously pick up their left fork, they will all wait indefinitely for their right fork, creating a circular dependency.
+
+\subsection{Attempt 3: Breaking Circular Dependencies}
+\begin{cc}
+void take_forks(int id) {
+    int left = id;
+    int right = (id + 1) % 5;
+    
+    if (id == 4) {  // Last philosopher uses different order
+        pthread_mutex_lock(&fork_locks[right]);  // Right first
+        pthread_mutex_lock(&fork_locks[left]);   // Then left
+    } else {
+        pthread_mutex_lock(&fork_locks[left]);   // Left first
+        pthread_mutex_lock(&fork_locks[right]);  // Then right
+    }
+}
+\end{cc}
+
+\paragraph{Solution Analysis.} By having one philosopher acquire forks in reverse order, we break the circular dependency that causes deadlock. This ensures that not all philosophers can be blocked simultaneously.
+\newpage
+\subsection{The Need for Higher-Level Abstractions}
+Building correct concurrent programs from low-level primitives is challenging and error-prone. The complexity motivates the development of higher-level abstractions that hide synchronization details from programmers.
+
+\subsubsection{Parallel Programming Frameworks}
+\begin{itemize}
+  \item[-] \textbf{OpenMP}: Compiler directives for shared-memory parallelism
+  \item[-] \textbf{CUDA}: GPU programming model for massively parallel computation
+  \item[-] \textbf{MapReduce/Spark}: Distributed computing frameworks that handle parallelism and fault tolerance
+  \item[-] \textbf{Transactional Memory}: Database-style transactions for memory operations
+\end{itemize}
+
+These frameworks allow programmers to focus on algorithmic concerns rather than low-level synchronization mechanisms, leading to more productive and less error-prone parallel programming.
+
+\paragraph{Design Philosophy.} The evolution from manual thread and lock management toward declarative parallel programming models reflects a broader trend in computer science: \textit{raising the level of abstraction to hide complexity and reduce the opportunity for errors}.\\[10px]
+\hrule
+\vspace{10px}
+Good Luck for the exam! 
+\end{document}
